@@ -12,10 +12,10 @@
   header { display:flex; align-items:flex-end; justify-content:space-between; padding-bottom:20px; border-bottom:2px solid var(--ink); margin-bottom:24px; flex-wrap:wrap; gap:14px; }
   header h1 { font-size:34px; font-weight:800; letter-spacing:-1px; line-height:1; }
   header .tag { color:var(--muted); font-size:13px; margin-top:6px; letter-spacing:.04em; }
-  .codebox { display:flex; align-items:center; gap:10px; background:var(--ink); color:#fff; padding:12px 16px; border-radius:12px; font-family:Consolas,monospace; }
-  .codebox .grp { display:flex; gap:5px; }
-  .codebox .dg { width:30px; height:38px; background:#2b2b2b; border:1px solid #3a3a3a; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; }
-  .codebox .sep { opacity:.4; font-size:20px; font-weight:700; }
+  .codebox { display:flex; align-items:center; gap:10px; background:var(--ink); color:#fff; padding:8px 12px; border-radius:12px; font-family:Consolas,monospace; }
+  .codebox input { background:transparent; border:none; color:#fff; font-family:Consolas,monospace; font-size:24px; font-weight:700; width:160px; text-align:center; letter-spacing:2px; outline:none; caret-color:#fff; }
+  .codebox input::placeholder { color:#6b6b6b; font-weight:400; font-size:18px; }
+  .codebox.bad { outline:2px solid #e5484d; }
   .grid { display:grid; grid-template-columns:1.05fr .95fr; gap:24px; }
   @media (max-width:920px){ .grid { grid-template-columns:1fr; } }
   .panel { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; }
@@ -64,8 +64,8 @@
       <h1>Plataforma de Color HLC</h1>
       <div class="tag">Hue 000–160 · Ligereza 00–99 · Croma 00–99 — inspirado en el sistema Coloro</div>
     </div>
-    <div class="codebox" id="codebox" title="Código Coloro HHH-LL-CC">
-      <span class="grp" id="cH"></span><span class="sep">–</span><span class="grp" id="cL"></span><span class="sep">–</span><span class="grp" id="cC"></span>
+    <div class="codebox" title="Escribe el código Coloro: HHH-LL-CC">
+      <input id="codeIn" inputmode="numeric" spellcheck="false" autocomplete="off" placeholder="050-60-40">
     </div>
   </header>
 
@@ -93,9 +93,9 @@
           <canvas id="rampH" width="60" height="340"></canvas>
           <div class="ramp-ticks"><span>99</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
           <div class="fields">
-            <div class="field"><div class="row"><label>Hue</label><span class="limits">000–160</span></div><div class="range"><input type="text" id="hue" value="040" maxlength="3"><input type="range" id="hueR" min="0" max="160"></div></div>
-            <div class="field"><div class="row"><label>Ligereza</label><span class="limits">00–99</span></div><div class="range"><input type="text" id="lig" value="050" maxlength="2"><input type="range" id="ligR" min="0" max="99"></div></div>
-            <div class="field"><div class="row"><label>Croma</label><span class="limits">00–99</span></div><div class="range"><input type="text" id="croma" value="055" maxlength="2"><input type="range" id="cromaR" min="0" max="99"></div></div>
+            <div class="field"><div class="row"><label>Hue</label><span class="limits">000–160</span></div><div class="range"><input type="text" id="hue" value="040" maxlength="3" inputmode="numeric"><input type="range" id="hueR" min="0" max="160"></div></div>
+            <div class="field"><div class="row"><label>Ligereza</label><span class="limits">00–99</span></div><div class="range"><input type="text" id="lig" value="050" maxlength="2" inputmode="numeric"><input type="range" id="ligR" min="0" max="99"></div></div>
+            <div class="field"><div class="row"><label>Croma</label><span class="limits">00–99</span></div><div class="range"><input type="text" id="croma" value="055" maxlength="2" inputmode="numeric"><input type="range" id="cromaR" min="0" max="99"></div></div>
           </div>
         </div>
       </div>
@@ -249,17 +249,25 @@
     byId('segDesc').textContent = 'Segmento: '+cur.short+' · tu color ('+pad2(L)+' de ligereza, '+pad2(C)+' de croma).';
   }
 
-  function codeDigits(grp, val){
-    var s = val<10 ? '0'+val : ''+val; s = val<100 && grp==='H' ? (val<10?'00':'0')+val : s;
-    var dg = '';
-    for (var i=0;i<s.length;i++) dg += '<span class="dg">'+s.charAt(i)+'</span>';
-    return dg;
+  var codeIn = byId('codeIn');
+  var codeBox = byId('codeIn').closest('.codebox');
+  var codeLock = false;
+  function applyCode(){
+    if (codeLock) return;
+    var d = codeIn.value.replace(/\D/g, '');
+    if (d.length === 7){
+      var h2 = +d.substr(0,3), l2 = +d.substr(3,2), c2 = +d.substr(5,2);
+      if (h2<=160 && l2<=99 && c2<=99){ codeBox.classList.remove('bad'); update({h:h2,l:l2,c:c2}); return; }
+    }
+    codeBox.classList.add('bad');
   }
+  codeIn.addEventListener('input', applyCode);
+  codeIn.addEventListener('blur', function(){ applyCode(); codeBox.classList.remove('bad'); });
+  codeIn.addEventListener('keydown', function(e){ if (e.key==='Enter'){ applyCode(); codeBox.classList.remove('bad'); codeIn.blur(); } });
 
   function render(){
-    byId('cH').innerHTML = codeDigits('H', H);
-    byId('cL').innerHTML = codeDigits('L', L);
-    byId('cC').innerHTML = codeDigits('C', C);
+    codeLock = true; codeIn.value = pad3(H)+'-'+pad2(L)+'-'+pad2(C); codeLock = false;
+    codeBox.classList.remove('bad');
     var rgb = color(L, C, H);
     var prec = byId('preview');
     prec.style.background = hex(rgb);
