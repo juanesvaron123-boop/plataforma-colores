@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plataforma de Color · Sistema HLC</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root { --bg:#f6f4ef; --ink:#161616; --muted:#6b675f; --line:#d8d3c9; --card:#ffffff; --accent:#161616; }
+  body { background:var(--bg); color:var(--ink); font-family:'Segoe UI',system-ui,-apple-system,sans-serif; padding:28px; }
+  .wrap { max-width:1180px; margin:0 auto; }
+  header { display:flex; align-items:flex-end; justify-content:space-between; padding-bottom:20px; border-bottom:2px solid var(--ink); margin-bottom:24px; flex-wrap:wrap; gap:14px; }
+  header h1 { font-size:34px; font-weight:800; letter-spacing:-1px; line-height:1; }
+  header .tag { color:var(--muted); font-size:13px; margin-top:6px; letter-spacing:.04em; }
+  .codebox { display:flex; align-items:center; gap:10px; background:var(--ink); color:#fff; padding:12px 16px; border-radius:12px; font-family:Consolas,monospace; }
+  .codebox .grp { display:flex; gap:5px; }
+  .codebox .dg { width:30px; height:38px; background:#2b2b2b; border:1px solid #3a3a3a; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; }
+  .codebox .sep { opacity:.4; font-size:20px; font-weight:700; }
+  .grid { display:grid; grid-template-columns:1.05fr .95fr; gap:24px; }
+  @media (max-width:920px){ .grid { grid-template-columns:1fr; } }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; }
+  .panel h2 { font-size:12px; text-transform:uppercase; letter-spacing:.14em; color:var(--muted); margin-bottom:16px; font-weight:700; }
+  .wheel-wrap { position:relative; display:flex; justify-content:center; }
+  canvas { display:block; border-radius:12px; }
+  #wheel { cursor:crosshair; }
+  .wheel-caps { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; margin-top:8px; }
+  .axis { display:flex; gap:20px; align-items:stretch; }
+  #rampH { cursor:ns-resize; height:340px; width:48px; border-radius:12px; }
+  .ramp-ticks { display:flex; flex-direction:column; justify-content:space-between; font-family:Consolas,monospace; font-size:11px; color:var(--muted); text-align:right; padding:4px 0; }
+  .fields { flex:1; }
+  .field { margin-bottom:16px; }
+  .field .row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+  .field label { font-weight:600; font-size:14px; }
+  .field .range { display:flex; align-items:center; gap:10px; }
+  input[type=text] { width:100%; background:#f1efe9; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:Consolas,monospace; font-size:15px; }
+  .giant { font-family:Consolas,monospace; font-size:19px; font-weight:700; color:var(--ink); width:64px; padding:6px 8px; text-align:center; }
+  input[type=range] { -webkit-appearance:none; appearance:none; height:6px; border-radius:4px; background:var(--line); outline:none; flex:1; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--ink); cursor:pointer; }
+  input[type=range]::-moz-range-thumb { width:18px; height:18px; border:none; border-radius:50%; background:var(--ink); cursor:pointer; }
+  .limits { display:flex; justify-content:space-between; font-family:Consolas,monospace; font-size:11px; color:var(--muted); margin-top:4px; }
+  .preview { height:150px; border-radius:12px; border:1px solid var(--line); margin-bottom:14px; display:flex; align-items:flex-end; justify-content:space-between; padding:12px; transition:background .1s; }
+  .preview .lx { font-family:Consolas,monospace; font-weight:700; font-size:17px; }
+  .preview .rx { font-family:Consolas,monospace; font-size:12px; opacity:.85; }
+  .meta { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .chip { background:#f1efe9; border:1px solid var(--line); border-radius:8px; padding:6px 9px; font-family:Consolas,monospace; font-size:11px; color:var(--muted); }
+  .chip b { color:var(--ink); }
+  .seg-title { font-weight:700; font-size:16px; margin-bottom:4px; }
+  .seg-sub { color:var(--muted); font-size:12px; margin-bottom:14px; }
+  .segs { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+  .seg { border-radius:8px; height:70px; cursor:pointer; border:2px solid transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; text-shadow:0 1px 2px rgba(0,0,0,.35); transition:transform .1s; }
+  .seg:hover { transform:scale(1.03); }
+  .seg.on { outline:3px solid var(--ink); outline-offset:-3px; }
+  .seg small { font-weight:400; text-transform:none; letter-spacing:0; opacity:.85; font-size:9px; }
+  .legend { font-size:11px; color:var(--muted); margin-top:12px; line-height:1.5; }
+  .legend b { color:var(--ink); }
+  .full { margin-top:24px; }
+  .hint { font-size:12px; color:var(--muted); margin-top:8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Plataforma de Color HLC</h1>
+      <div class="tag">Hue 000–160 · Ligereza 00–99 · Croma 00–99 — inspirado en el sistema Coloro</div>
+    </div>
+    <div class="codebox" id="codebox" title="Código Coloro HHH-LL-CC">
+      <span class="grp" id="cH"></span><span class="sep">–</span><span class="grp" id="cL"></span><span class="sep">–</span><span class="grp" id="cC"></span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div style="display:flex; flex-direction:column; gap:24px;">
+      <div class="panel">
+        <h2>Rueda de Hue · el croma crece hacia afuera</h2>
+        <div class="wheel-wrap"><canvas id="wheel" width="420" height="420"></canvas></div>
+        <div class="wheel-caps"><span>· centro = croma 00</span><span>borde = croma 99 ·</span></div>
+        <p class="hint">Haz clic en la rueda para elegir Hue (ángulo) y Croma (distancia al centro).</p>
+      </div>
+
+      <div class="panel">
+        <h2>Explorar · plano de color</h2>
+        <canvas id="exp" width="161" height="100" style="width:100%; cursor:crosshair;"></canvas>
+        <div class="wheel-caps"><span>Ligereza 99</span><span>0 · 160 Hue →</span><span style="text-align:right">Ligereza 0</span></div>
+        <p class="hint">Intervalos iguales, sin huecos de color. Clic para tomar el color. Los cambios de Croma se reflejan en esta paleta.</p>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:24px;">
+      <div class="panel">
+        <h2>Eje vertical de Ligereza</h2>
+        <div class="axis">
+          <canvas id="rampH" width="60" height="340"></canvas>
+          <div class="ramp-ticks"><span>99</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
+          <div class="fields">
+            <div class="field"><div class="row"><label>Hue</label><span class="limits">000–160</span></div><div class="range"><input type="text" id="hue" value="040" maxlength="3"><input type="range" id="hueR" min="0" max="160"></div></div>
+            <div class="field"><div class="row"><label>Ligereza</label><span class="limits">00–99</span></div><div class="range"><input type="text" id="lig" value="050" maxlength="2"><input type="range" id="ligR" min="0" max="99"></div></div>
+            <div class="field"><div class="row"><label>Croma</label><span class="limits">00–99</span></div><div class="range"><input type="text" id="croma" value="055" maxlength="2"><input type="range" id="cromaR" min="0" max="99"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Color resultante</h2>
+        <div class="preview" id="preview"><span class="lx" id="pxHex"></span><span class="rx" id="pxCod"></span></div>
+        <div class="meta">
+          <span class="chip">RGB <b id="vRgb"></b></span>
+          <span class="chip">OKLCH <b id="vOk"></b></span>
+          <span class="chip">HSL <b id="vHsl"></b></span>
+        </div>
+        <div class="seg-title" id="segName">—</div>
+        <div class="seg-sub" id="segDesc">Análisis de 9 segmentos: cómo clasifica tu color según ligereza y croma.</div>
+        <div class="segs" id="segs"></div>
+        <p class="legend">Regiones: arriba = ligereza alta · abajo = baja · izquierda = croma bajo · derecha = alto. Haz clic en una región para saltar a ella.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var H = 40, L = 50, C = 55;
+  var hueEl = byId('hue'), hueREl = byId('hueR'), ligEl = byId('lig'), ligREl = byId('ligR'), cromaEl = byId('croma'), cromaREl = byId('cromaR');
+  var wheel = canv('wheel'), ramp = canv('rampH'), exp = canv('exp');
+  var WH = 420, WR = 186, WC = WH / 2;
+  var segs = [
+    { name:'Casi acromático',  short:'Claro · C bajo',   Lm:87, Cm:7 },
+    { name:'Pastel',           short:'Claro · C medio',  Lm:87, Cm:32 },
+    { name:'Luminoso',         short:'Claro · C alto',   Lm:78, Cm:70 },
+    { name:'Gris medio',       short:'Medio · C bajo',   Lm:60, Cm:7 },
+    { name:'Suave',            short:'Medio · C medio',  Lm:60, Cm:32 },
+    { name:'Vívido',           short:'Medio · C alto',   Lm:58, Cm:74 },
+    { name:'Gris oscuro',      short:'Oscuro · C bajo',  Lm:22, Cm:7 },
+    { name:'Opaco',            short:'Oscuro · C medio', Lm:30, Cm:30 },
+    { name:'Profundo',         short:'Oscuro · C alto',  Lm:28, Cm:62 }
+  ];
+  var segCont = byId('segs');
+
+  function byId(id){ return document.getElementById(id); }
+  function canv(id){ return byId(id).getContext('2d'); }
+  function clamp(x,a,b){ return x<a?a:(x>b?b:x); }
+  function pad2(n){ return ('0'+n).slice(-2); }
+  function pad3(n){ return ('00'+n).slice(-3); }
+
+  function oklchToRgb(Lc, Cc, Hdeg) {
+    var hr = Hdeg * Math.PI / 180;
+    var a = Cc * Math.cos(hr), b = Cc * Math.sin(hr);
+    var l_ = Lc + 0.3963377774*a + 0.2158037573*b;
+    var m_ = Lc - 0.1055613458*a - 0.0638541728*b;
+    var s_ = Lc - 0.0894841775*a - 1.2914855480*b;
+    var l = l_*l_*l_, m = m_*m_*m_, s = s_*s_*s_;
+    var r =  4.0767416621*l - 3.3077115913*m + 0.2309699292*s;
+    var g = -1.2684380046*l + 2.6097574011*m - 0.3413193965*s;
+    var bl= -0.0041960863*l - 0.7034186147*m + 1.7076147010*s;
+    function enc(x){ x=clamp(x,0,1); return x<=0.0031308 ? 12.92*x : 1.055*Math.pow(x,1/2.4)-0.055; }
+    return [Math.round(enc(r)*255), Math.round(enc(g)*255), Math.round(enc(bl)*255)];
+  }
+  function rgbToHsl(r,g,b){
+    r/=255; g/=255; b/=255;
+    var max=Math.max(r,g,b), min=Math.min(r,g,b), h, s, l=(max+min)/2;
+    if(max===min){ h=s=0; } else {
+      var d=max-min; s = l>0.5 ? d/(2-max-min) : d/(max+min);
+      switch(max){ case r: h=(g-b)/d+(g<b?6:0); break; case g: h=(b-r)/d+2; break; default: h=(r-g)/d+4; }
+      h/=6;
+    }
+    return [Math.round(h*360), Math.round(s*100), Math.round(l*100)];
+  }
+  function hex(rgb){ return '#'+rgb.map(n=>(('0'+n.toString(16)).slice(-2))).join('').toUpperCase(); }
+  function color(l, c, hue){ return oklchToRgb(l/99, c/99*0.37, hue*2.25); }
+  function luma(rgb){ return rgb[0]*0.299+rgb[1]*0.587+rgb[2]*0.114; }
+
+  function drawWheel(){
+    var d = wheel.createImageData(WH, WH), i = 0;
+    for (var y=0;y<WH;y++) for (var x=0;x<WH;x++){
+      var dx=x-WC, dy=y-WC, dist=Math.sqrt(dx*dx+dy*dy);
+      if (dist>WR){ d.data[i++]=245; d.data[i++]=242; d.data[i++]=239; d.data[i++]=255; continue; }
+      var ang = Math.atan2(dx, -dy) * 180/Math.PI; if (ang<0) ang+=360;
+      var hue = Math.round(ang/360*160);
+      var chr = Math.round(dist/WR*99);
+      var rgb = color(L, clamp(chr,0,99), hue);
+      d.data[i++]=rgb[0]; d.data[i++]=rgb[1]; d.data[i++]=rgb[2]; d.data[i++]=255;
+    }
+    wheel.putImageData(d,0,0);
+    wheel.lineWidth = 1.4; wheel.strokeStyle = '#d8d3c9';
+    for (var f=0.25; f<=1; f+=0.25){ wheel.beginPath(); wheel.arc(WC,WC,WR*f,0,Math.PI*2); wheel.stroke(); }
+    var p0 = pen(H);
+    wheel.strokeStyle = '#161616'; wheel.beginPath();
+    wheel.moveTo(WC, WC-WR); wheel.lineTo(WC, WC-WR-14); wheel.stroke();
+    wheel.fillStyle = '#161616'; wheel.font = '11px Consolas, monospace'; wheel.fillText('0', WC-6, WC-WR-16);
+  }
+
+  function drawRamp(){
+    var hh = 340;
+    for (var y=0;y<hh;y++){
+      var l = Math.round((hh-1-y)/hh*99);
+      var rgb = color(clamp(l,0,99), C, H);
+      ramp.fillStyle = 'rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+      ramp.fillRect(0, y, 60, 1);
+    }
+    var yL = hh - Math.round(L/99*hh) - 1;
+    ramp.fillStyle = 'rgba(255,255,255,.85)';
+    ramp.fillRect(0, yL-12, 4, 25);
+    ramp.fillStyle = '#161616';
+    ramp.fillRect(56, yL-12, 4, 25);
+    ramp.fillRect(0, yL-12, 60, 3);
+    ramp.fillRect(0, yL+10, 60, 3);
+  }
+
+  function drawExp(){
+    var d = exp.createImageData(161, 100), i = 0;
+    var cc = clamp(C,0,99);
+    if (cc<1) cc = 1;
+    var tot = 0;
+    for (var y=0;y<100;y++){
+      var l = 99-y;
+      for (var x=0;x<161;x++){
+        var rgb = color(l, cc, x);
+        d.data[i++]=rgb[0]; d.data[i++]=rgb[1]; d.data[i++]=rgb[2]; d.data[i++]=255;
+        tot++;
+      }
+    }
+    exp.putImageData(d,0,0);
+    var xh = Math.round(H), yl = 99-L;
+    exp.lineWidth = 3; exp.strokeStyle = '#ffffff';
+    exp.strokeRect(xh-1.5, yl-1.5, 3, 3);
+  }
+
+  function segFor(l, c){
+    var ci = c<=14 ? 0 : (c<=49 ? 1 : 2);
+    var ri = l>=75 ? 0 : (l>=45 ? 1 : 2);
+    return ri*3 + ci;
+  }
+
+  function renderSegs(){
+    segCont.innerHTML = '';
+    for (var i=0;i<segs.length;i++){
+      var s = segs[i];
+      var rgb = color(s.Lm, s.Cm, H);
+      var el = document.createElement('div');
+      el.className = 'seg' + (i===segFor(L,C) ? ' on' : '');
+      el.style.background = 'rgb('+rgb.join(',')+')';
+      el.style.color = luma(rgb)>150 ? '#161616' : '#fff';
+      el.innerHTML = '<span>'+s.name.replace(' ','<br>')+'</span><small>'+s.short+'</small>';
+      (function(idx){ el.onclick = function(){ L=s.Lm; C=s.Cm; sync(); }; })(i);
+      segCont.appendChild(el);
+    }
+    var cur = segs[segFor(L,C)];
+    byId('segName').textContent = cur.name;
+    byId('segDesc').textContent = 'Segmento: '+cur.short+' · tu color ('+pad2(L)+' de ligereza, '+pad2(C)+' de croma).';
+  }
+
+  function codeDigits(grp, val){
+    var s = val<10 ? '0'+val : ''+val; s = val<100 && grp==='H' ? (val<10?'00':'0')+val : s;
+    var dg = '';
+    for (var i=0;i<s.length;i++) dg += '<span class="dg">'+s.charAt(i)+'</span>';
+    return dg;
+  }
+
+  function render(){
+    byId('cH').innerHTML = codeDigits('H', H);
+    byId('cL').innerHTML = codeDigits('L', L);
+    byId('cC').innerHTML = codeDigits('C', C);
+    var rgb = color(L, C, H);
+    var prec = byId('preview');
+    prec.style.background = hex(rgb);
+    var fg = luma(rgb)>150 ? '#161616' : '#ffffff';
+    prec.style.color = fg;
+    byId('pxHex').textContent = hex(rgb);
+    byId('pxCod').textContent = pad3(H)+'-'+pad2(L)+'-'+pad2(C);
+    var hsl = rgbToHsl(rgb[0],rgb[1],rgb[2]);
+    byId('vRgb').textContent = rgb.join(', ');
+    byId('vOk').textContent = 'L'+(L/99).toFixed(2)+' C'+(C/99*0.37).toFixed(2)+' H'+(H*2.25).toFixed(0);
+    byId('vHsl').textContent = hsl.join(', ');
+    drawWheel(); drawRamp(); drawExp(); renderSegs();
+  }
+
+  function update(val){
+    H = clamp(+val.h || H, 0, 160);
+    L = clamp(+val.l || L, 0, 99);
+    C = clamp(+val.c || C, 0, 99);
+    sync();
+  }
+
+  function sync(){
+    hueEl.value = pad3(H).slice(-3).replace(/^0(?=\d)/,'');
+    hueEl.value = H<100 ? (H<10 ? '00'+H : '0'+H) : ''+H;
+    hueREl.value = H;
+    ligEl.value = pad2(L); ligREl.value = L;
+    cromaEl.value = pad2(C); cromaREl.value = C;
+    render();
+  }
+
+  wheel.canvas.addEventListener('click', function(e){
+    var r = wheel.canvas.getBoundingClientRect();
+    var x = (e.clientX-r.left)/r.width*WH, y = (e.clientY-r.top)/r.height*WH;
+    var dx=x-WC, dy=y-WC, dist=Math.sqrt(dx*dx+dy*dy);
+    if (dist>WR) return;
+    var ang = Math.atan2(dx,-dy)*180/Math.PI; if (ang<0) ang+=360;
+    update({ h:Math.round(ang/360*160), c:Math.round(dist/WR*99) });
+  });
+  ramp.canvas.addEventListener('click', function(e){
+    var r = ramp.canvas.getBoundingClientRect();
+    var l = Math.round((1-(e.clientY-r.top)/r.height)*99);
+    update({ l:clamp(l,0,99) });
+  });
+  exp.canvas.addEventListener('click', function(e){
+    var r = exp.canvas.getBoundingClientRect();
+    var x = Math.round((e.clientX-r.left)/r.width*160);
+    var y = Math.round((e.clientY-r.top)/r.height*99);
+    update({ h:clamp(x,0,160), l:clamp(99-y,0,99) });
+  });
+
+  function bind(el, ev, fn){ ['input','change'].forEach(function(e){ el.addEventListener(e, function(){ fn(+el.value); }); }); }
+  bind(hueEl, null, function(v){ update({ h:clamp(v,0,160) }); });
+  bind(hueREl, null, function(v){ update({ h:clamp(v,0,160) }); });
+  bind(ligEl, null, function(v){ update({ l:clamp(v,0,99) }); });
+  bind(ligREl, null, function(v){ update({ l:clamp(v,0,99) }); });
+  bind(cromaEl, null, function(v){ update({ c:clamp(v,0,99) }); });
+  bind(cromaREl, null, function(v){ update({ c:clamp(v,0,99) }); });
+
+  sync();
+})();
+</script>
+</body>
+</html>
