@@ -12,10 +12,14 @@
   header { display:flex; align-items:flex-end; justify-content:space-between; padding-bottom:20px; border-bottom:2px solid var(--ink); margin-bottom:24px; flex-wrap:wrap; gap:14px; }
   header h1 { font-size:34px; font-weight:800; letter-spacing:-1px; line-height:1; }
   header .tag { color:var(--muted); font-size:13px; margin-top:6px; letter-spacing:.04em; }
+  .manual-entry { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+  .manual-label { background:var(--ink); color:#fff; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.14em; padding:5px 10px; border-radius:7px; }
+  .manual-format { font-family:Consolas,monospace; font-size:11px; color:var(--muted); letter-spacing:.04em; }
   .codebox { display:flex; align-items:center; gap:10px; background:var(--ink); color:#fff; padding:8px 12px; border-radius:12px; font-family:Consolas,monospace; }
-  .codebox input { background:transparent; border:none; color:#fff; font-family:Consolas,monospace; font-size:24px; font-weight:700; width:160px; text-align:center; letter-spacing:2px; outline:none; caret-color:#fff; }
+  .codebox input { background:transparent; border:none; color:#fff; font-family:Consolas,monospace; font-size:26px; font-weight:700; width:175px; text-align:center; letter-spacing:2px; outline:none; caret-color:#fff; }
   .codebox input::placeholder { color:#6b6b6b; font-weight:400; font-size:18px; }
   .codebox.bad { outline:2px solid #e5484d; }
+  @media (max-width:640px){ .manual-entry { align-items:flex-start; } }
   .grid { display:grid; grid-template-columns:1.05fr .95fr; gap:24px; }
   @media (max-width:920px){ .grid { grid-template-columns:1fr; } }
   .panel { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; }
@@ -64,8 +68,12 @@
       <h1>Plataforma de Color HLC</h1>
       <div class="tag">Hue 000–160 · Ligereza 00–99 · Croma 00–99 — inspirado en el sistema Coloro</div>
     </div>
-    <div class="codebox" title="Escribe el código Coloro: HHH-LL-CC">
-      <input id="codeIn" inputmode="numeric" spellcheck="false" autocomplete="off" placeholder="050-60-40">
+    <div class="manual-entry">
+      <span class="manual-label">Ingresar coordenadas</span>
+      <span class="manual-format">Escribe el código · HHH – LL – CC</span>
+      <div class="codebox" title="Escribe el código Coloro: HHH-LL-CC">
+        <input id="codeIn" inputmode="numeric" spellcheck="false" autocomplete="off" placeholder="050-60-40">
+      </div>
     </div>
   </header>
 
