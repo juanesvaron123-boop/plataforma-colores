@@ -38,7 +38,9 @@
   .panel { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px 24px; box-shadow:0 1px 2px rgba(22,22,22,.04), 0 10px 30px rgba(22,22,22,.05); }
   .panel h2 { font-size:12px; text-transform:uppercase; letter-spacing:.16em; color:var(--muted); margin-bottom:16px; font-weight:800; display:flex; align-items:center; gap:9px; }
   .panel h2::before { content:""; width:9px; height:9px; border-radius:3px; background:linear-gradient(135deg,var(--ink),#8a7bd4); display:inline-block; }
-  .grid { gap:22px; }
+  .result-panel .result-body { display:grid; grid-template-columns:minmax(200px,1.1fr) 1fr; gap:20px; margin-bottom:16px; }
+  .result-meta { display:flex; flex-direction:column; justify-content:center; gap:10px; }
+  @media (max-width:680px){ .result-panel .result-body { grid-template-columns:1fr; } }
   .wheel-wrap { position:relative; display:flex; justify-content:center; }
   canvas { display:block; border-radius:12px; }
   #exp { background:#e9e6df; min-height:140px; }
@@ -174,10 +176,14 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
 
-      <div class="panel">
-        <h2>Color resultante</h2>
-        <div class="preview" id="preview"><span class="lx" id="pxHex"></span><span class="rx" id="pxCod"></span></div>
+  <div class="panel result-panel">
+    <h2>Color resultante</h2>
+    <div class="result-body">
+      <div class="preview" id="preview"><span class="lx" id="pxHex"></span><span class="rx" id="pxCod"></span></div>
+      <div class="result-meta">
         <div class="meta">
           <span class="chip">RGB <b id="vRgb"></b></span>
           <span class="chip">OKLCH <b id="vOk"></b></span>
@@ -185,10 +191,10 @@
         </div>
         <div class="seg-title" id="segName">—</div>
         <div class="seg-sub" id="segDesc">Análisis de 9 segmentos: cómo clasifica tu color según ligereza y croma.</div>
-        <div class="segs" id="segs"></div>
-        <p class="legend">Regiones: arriba = ligereza alta · abajo = baja · izquierda = croma bajo · derecha = alto. Haz clic en una región para saltar a ella.</p>
       </div>
     </div>
+    <div class="segs" id="segs"></div>
+    <p class="legend">Regiones: arriba = ligereza alta · abajo = baja · izquierda = croma bajo · derecha = alto. Haz clic en una región para saltar a ella.</p>
   </div>
 
   <div class="panel plane-panel">
