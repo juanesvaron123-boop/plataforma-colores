@@ -27,6 +27,9 @@
   .wheel-wrap { position:relative; display:flex; justify-content:center; }
   canvas { display:block; border-radius:12px; }
   #exp { background:#e9e6df; min-height:140px; }
+  .plane-row { display:flex; gap:18px; flex-wrap:wrap; }
+  .plane-row > div { flex:1 1 300px; min-width:260px; }
+  #exp, #planeLC { background:#e9e6df; }
   #wheel { cursor:crosshair; }
   .wheel-caps { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; margin-top:8px; }
   .axis { display:flex; gap:20px; align-items:stretch; }
@@ -78,6 +81,22 @@
     </div>
   </header>
 
+  <div class="panel plane-panel">
+    <h2>Plano de color</h2>
+    <div class="plane-row">
+      <div>
+        <canvas id="exp" width="161" height="100" style="width:100%; cursor:crosshair;"></canvas>
+        <div class="wheel-caps"><span>Ligereza 99</span><span>Hue 0 · 160 →</span><span style="text-align:right">Ligereza 0</span></div>
+        <p class="hint">Hue × Ligereza al croma actual (intervalos iguales, sin huecos). Clic para tomar el color.</p>
+      </div>
+      <div>
+        <canvas id="planeLC" width="180" height="100" style="width:100%; cursor:crosshair;"></canvas>
+        <div class="wheel-caps"><span>Croma 0</span><span>Ligereza 99 ↑</span><span style="text-align:right">Croma 99</span></div>
+        <p class="hint">Ligereza × Croma al hue actual (vista tipo Coloro). Clic para elegir.</p>
+      </div>
+    </div>
+  </div>
+
   <div class="grid">
     <div style="display:flex; flex-direction:column; gap:24px;">
       <div class="panel">
@@ -85,13 +104,6 @@
         <div class="wheel-wrap"><canvas id="wheel" width="420" height="420"></canvas></div>
         <div class="wheel-caps"><span>· centro = croma 00</span><span>borde = croma 99 ·</span></div>
         <p class="hint">Haz clic en la rueda para elegir Hue (ángulo) y Croma (distancia al centro).</p>
-      </div>
-
-      <div class="panel">
-        <h2>Explorar · plano de color</h2>
-        <canvas id="exp" width="161" height="100" style="width:100%; cursor:crosshair;"></canvas>
-        <div class="wheel-caps"><span>Ligereza 99</span><span>0 · 160 Hue →</span><span style="text-align:right">Ligereza 0</span></div>
-        <p class="hint">Intervalos iguales, sin huecos de color. Clic para tomar el color. Los cambios de Croma se reflejan en esta paleta.</p>
       </div>
     </div>
 
@@ -130,7 +142,7 @@
 (function () {
   var H = 40, L = 50, C = 55;
   var hueEl = byId('hue'), hueREl = byId('hueR'), ligEl = byId('lig'), ligREl = byId('ligR'), cromaEl = byId('croma'), cromaREl = byId('cromaR');
-  var wheel = canv('wheel'), ramp = canv('rampH'), exp = canv('exp');
+  var wheel = canv('wheel'), ramp = canv('rampH'), exp = canv('exp'), lc = canv('planeLC');
   var WH = 420, WR = 186, WC = WH / 2;
   var segs = [
     { name:'Casi acromático',  short:'Claro · C bajo',   Lm:87, Cm:7 },
@@ -192,7 +204,6 @@
     wheel.putImageData(d,0,0);
     wheel.lineWidth = 1.4; wheel.strokeStyle = '#d8d3c9';
     for (var f=0.25; f<=1; f+=0.25){ wheel.beginPath(); wheel.arc(WC,WC,WR*f,0,Math.PI*2); wheel.stroke(); }
-    var p0 = pen(H);
     wheel.strokeStyle = '#161616'; wheel.beginPath();
     wheel.moveTo(WC, WC-WR); wheel.lineTo(WC, WC-WR-14); wheel.stroke();
     wheel.fillStyle = '#161616'; wheel.font = '11px Consolas, monospace'; wheel.fillText('0', WC-6, WC-WR-16);
@@ -232,6 +243,23 @@
     var xh = Math.round(H), yl = 99-L;
     exp.lineWidth = 3; exp.strokeStyle = '#ffffff';
     exp.strokeRect(xh-1.5, yl-1.5, 3, 3);
+  }
+
+  function drawLC(){
+    var W = lc.canvas.width, Hh = lc.canvas.height;
+    var d = lc.createImageData(W, Hh), i = 0;
+    for (var y=0;y<Hh;y++){
+      var l = Math.round((Hh-1-y)/(Hh-1)*99);
+      for (var x=0;x<W;x++){
+        var c = Math.round(x/(W-1)*99);
+        var rgb = color(l, c, H);
+        d.data[i++]=rgb[0]; d.data[i++]=rgb[1]; d.data[i++]=rgb[2]; d.data[i++]=255;
+      }
+    }
+    lc.putImageData(d,0,0);
+    var xc = Math.round(C/99*(W-1)), yl = Hh - Math.round(L/99*(Hh-1)) - 1;
+    lc.lineWidth = 3; lc.strokeStyle = '#ffffff';
+    lc.strokeRect(xc-1.5, yl-1.5, 3, 3);
   }
 
   function segFor(l, c){
@@ -288,7 +316,7 @@
     byId('vRgb').textContent = rgb.join(', ');
     byId('vOk').textContent = 'L'+(L/99).toFixed(2)+' C'+(C/99*0.37).toFixed(2)+' H'+(H*2.25).toFixed(0);
     byId('vHsl').textContent = hsl.join(', ');
-    drawWheel(); drawRamp(); drawExp(); renderSegs();
+    drawWheel(); drawRamp(); drawExp(); drawLC(); renderSegs();
   }
 
   function update(val){
@@ -325,6 +353,14 @@
     var x = Math.round((e.clientX-r.left)/r.width*160);
     var y = Math.round((e.clientY-r.top)/r.height*99);
     update({ h:clamp(x,0,160), l:clamp(99-y,0,99) });
+  });
+  lc.canvas.addEventListener('click', function(e){
+    var r = lc.canvas.getBoundingClientRect();
+    var xc = Math.round((e.clientX-r.left)/r.width*(lc.canvas.width-1));
+    var yl = Math.round((e.clientY-r.top)/r.height*(lc.canvas.height-1));
+    var c2 = clamp(Math.round(xc/(lc.canvas.width-1)*99),0,99);
+    var l2 = clamp(99 - Math.round(yl/(lc.canvas.height-1)*99),0,99);
+    update({ l:l2, c:c2 });
   });
 
   function bind(el, ev, fn){ ['input','change'].forEach(function(e){ el.addEventListener(e, function(){ fn(+el.value); }); }); }
