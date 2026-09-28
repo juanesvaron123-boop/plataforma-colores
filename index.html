@@ -96,6 +96,33 @@
   .legend b { color:var(--ink); }
   .full { margin-top:24px; }
   .hint { font-size:12px; color:var(--muted); margin-top:8px; }
+  .save-bar { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin:20px 0 2px; padding-top:18px; border-top:1px dashed var(--line); }
+  .save-bar .field { margin:0; flex:1 1 170px; }
+  .save-bar label { display:block; font-weight:600; font-size:12px; color:var(--muted); margin-bottom:6px; }
+  .save-btn { background:var(--ink); color:#fff; border:none; border-radius:9px; padding:11px 16px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; }
+  .save-btn:hover { opacity:.88; }
+  .save-msg { font-size:12px; color:var(--muted); align-self:center; }
+  .save-msg.ok { color:#1e7d3c; }
+  .mine-top { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+  .mine-top input[type=search] { flex:1; min-width:220px; background:#f1efe9; border:1px solid var(--line); border-radius:9px; padding:9px 12px; font-size:13px; outline:none; }
+  .mine-top input[type=search]:focus { outline:2px solid rgba(79,140,255,.35); }
+  .mine-count { font-family:Consolas,monospace; font-size:12px; color:var(--muted); white-space:nowrap; }
+  .sec-chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+  .sec-chip { background:#f1efe9; border:1px solid var(--line); border-radius:20px; padding:5px 12px; font-size:11px; font-weight:600; cursor:pointer; color:var(--ink); }
+  .sec-chip.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .mine-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(168px,1fr)); gap:10px; }
+  .sec-head { grid-column:1 / -1; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin:12px 0 2px; }
+  .mine-card { position:relative; background:#fff; border:1px solid var(--line); border-radius:11px; overflow:hidden; cursor:pointer; transition:transform .1s, box-shadow .1s; }
+  .mine-card:hover { transform:translateY(-2px); box-shadow:0 6px 14px rgba(22,22,22,.08); }
+  .mine-card.on { outline:3px solid var(--ink); outline-offset:-3px; }
+  .mine-sw { height:52px; }
+  .mine-info { padding:8px 10px; }
+  .mine-name { font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mine-code { font-family:Consolas,monospace; font-size:10px; color:var(--muted); margin-top:2px; }
+  .mine-sec { display:inline-block; margin-top:5px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; background:#f1efe9; border:1px solid var(--line); border-radius:20px; padding:2px 8px; color:var(--ink); }
+  .mine-del { position:absolute; top:6px; right:6px; width:22px; height:22px; line-height:1; border:none; border-radius:50%; background:rgba(22,22,22,.55); color:#fff; font-size:15px; cursor:pointer; }
+  .mine-del:hover { background:#e5484d; }
+  .mine-empty { grid-column:1 / -1; color:var(--muted); font-size:13px; padding:18px; text-align:center; background:#faf8f4; border-radius:10px; }
 </style>
 </head>
 <body>
@@ -194,7 +221,25 @@
       </div>
     </div>
     <div class="segs" id="segs"></div>
+    <div class="save-bar">
+      <div class="field"><label>Nombre del color</label><input type="text" id="nameIn" maxlength="40"></div>
+      <div class="field"><label>Sección</label><input type="text" id="secIn" maxlength="24" list="secList"></div>
+      <datalist id="secList"></datalist>
+      <button class="save-btn" id="saveBtn">Guardar en mi biblioteca</button>
+      <span class="save-msg" id="saveMsg"></span>
+    </div>
     <p class="legend">Regiones: arriba = ligereza alta · abajo = baja · izquierda = croma bajo · derecha = alto. Haz clic en una región para saltar a ella.</p>
+  </div>
+
+  <div class="panel mine-panel">
+    <h2>Mi biblioteca de colores</h2>
+    <div class="mine-top">
+      <input type="search" id="qIn" placeholder="Buscar por nombre, sección o código… ej. rojos" spellcheck="false">
+      <span class="mine-count" id="mineCount">0 guardados</span>
+    </div>
+    <div class="sec-chips" id="secChips"></div>
+    <div class="mine-grid" id="mineGrid"></div>
+    <p class="hint">Haz clic en un color para cargarlo. Usa la × para quitarlo. Tus colores se guardan en este navegador.</p>
   </div>
 
   <div class="panel plane-panel">
@@ -221,6 +266,14 @@
   var wheel = canv('wheel'), ramp = canv('rampH'), exp = canv('exp'), lc = canv('planeLC'), lib = canv('lib');
   var FH = 40, libF = 0;
   function folderHue(i){ return Math.round(i*(160/62)); }
+  var customName = null, prevC = {h:null,l:null,c:null};
+  var saved = [];
+  try { saved = JSON.parse(localStorage.getItem('pcolores')||'[]') || []; } catch(e){ saved = []; }
+  function norm(s){ return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(ch){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]; }); }
+  function persist(){ try { localStorage.setItem('pcolores', JSON.stringify(saved)); } catch(e){} }
+  function suggestedSec(){ return toneName(H,L,C).split(' ')[0]; }
+  function displayName(){ return (customName && customName.trim()) ? customName.trim() : toneName(H,L,C); }
   var WH = 420, WR = 186, WC = WH / 2;
   var segs = [
     { name:'Casi acromático',  short:'Claro · C bajo',   Lm:87, Cm:7 },
@@ -383,7 +436,7 @@
     hero.style.color = luma(rgb)>150 ? '#161616' : '#ffffff';
     byId('heroHex').textContent = hex(rgb);
     byId('heroCode').textContent = pad3(H)+'\u2013'+pad2(L)+'\u2013'+pad2(C);
-    byId('heroName').textContent = toneName(H, L, C);
+    byId('heroName').textContent = displayName();
   }
 
   function renderFicha(){
@@ -395,7 +448,7 @@
     for (var i=0;i<fldr.length;i++){ fldr[i].className = 'folder' + (i===idx ? ' on' : ''); }
     var sw = byId('ficSw');
     sw.style.background = hex(rgb);
-    byId('ficName').textContent = toneName(H, L, C);
+    byId('ficName').textContent = displayName();
     byId('ficCod').textContent = pad3(H)+'-'+pad2(L)+'-'+pad2(C);
     byId('ficHex').textContent = hex(rgb);
     byId('ficRgb').textContent = rgb.join(', ');
@@ -460,6 +513,16 @@
     byId('vRgb').textContent = rgb.join(', ');
     byId('vOk').textContent = 'L'+(L/99).toFixed(2)+' C'+(C/99*0.37).toFixed(2)+' H'+(H*2.25).toFixed(0);
     byId('vHsl').textContent = hsl.join(', ');
+    if (document.activeElement !== nameIn){
+      if (prevC.h!==null && (prevC.h!==H || prevC.l!==L || prevC.c!==C)) customName = null;
+      nameIn.value = displayName();
+    }
+    if (document.activeElement !== secIn){
+      var sug = suggestedSec();
+      if (!secIn.value || secIn.value.trim()===sug) secIn.value = sug;
+    }
+    prevC = {h:H, l:L, c:C};
+    markSelection();
     drawWheel(); drawRamp(); drawExp(); drawLC(); renderSegs(); renderFicha(); renderHero();
   }
 
@@ -558,7 +621,134 @@
   bind(cromaEl, null, function(v){ update({ c:clamp(v,0,99) }); });
   bind(cromaREl, null, function(v){ update({ c:clamp(v,0,99) }); });
 
+  var nameIn = byId('nameIn'), secIn = byId('secIn'), saveBtn = byId('saveBtn'), saveMsg = byId('saveMsg');
+  var qIn = byId('qIn'), secChips = byId('secChips'), mineGrid = byId('mineGrid'), mineCount = byId('mineCount');
+
+  nameIn.addEventListener('input', function(){ customName = nameIn.value; byId('heroName').textContent = displayName(); byId('ficName').textContent = displayName(); });
+
+  function flash(msg){
+    saveMsg.textContent = msg;
+    saveMsg.className = 'save-msg ok';
+    clearTimeout(flash._t);
+    flash._t = setTimeout(function(){ saveMsg.textContent = ''; saveMsg.className = 'save-msg'; }, 2400);
+  }
+  saveBtn.addEventListener('click', function(){
+    var name = displayName();
+    var sec = (secIn.value && secIn.value.trim()) ? secIn.value.trim() : suggestedSec();
+    var ex = null;
+    for (var i=0;i<saved.length;i++){ if (saved[i].h===H && saved[i].l===L && saved[i].c===C){ ex = saved[i]; break; } }
+    if (ex){ ex.name = name; ex.sec = sec; flash('Actualizado: '+name); }
+    else {
+      saved.push({ id:Date.now().toString(36)+Math.random().toString(36).slice(2,7), h:H, l:L, c:C, name:name, sec:sec });
+      flash('Guardado: '+name);
+    }
+    persist(); renderSaved(); refreshSecList();
+  });
+
+  function renderSecChips(){
+    secChips.innerHTML = '';
+    var q = norm(qIn.value).trim(), qn = norm(qIn.value);
+    var all = document.createElement('button');
+    all.className = 'sec-chip' + (!q ? ' on' : '');
+    all.textContent = 'Todos ('+saved.length+')';
+    all.onclick = function(){ qIn.value = ''; renderSaved(); };
+    secChips.appendChild(all);
+    var seen = {}, secs = [];
+    saved.forEach(function(it){ if(!seen[it.sec]){ seen[it.sec]=1; secs.push(it.sec); } });
+    secs.sort().forEach(function(s){
+      var n = saved.filter(function(it){ return it.sec===s; }).length;
+      var b = document.createElement('button');
+      b.className = 'sec-chip' + (norm(s)===qn ? ' on' : '');
+      b.textContent = s+' ('+n+')';
+      b.onclick = function(){ qIn.value = s; renderSaved(); };
+      secChips.appendChild(b);
+    });
+  }
+
+  function renderSaved(){
+    var q = norm(qIn.value).trim();
+    var items = saved.filter(function(it){
+      if (!q) return true;
+      return norm(it.name).indexOf(q)>=0 || norm(it.sec).indexOf(q)>=0 || norm(pad3(it.h)+'-'+pad2(it.l)+'-'+pad2(it.c)).indexOf(q)>=0;
+    });
+    mineGrid.innerHTML = '';
+    mineCount.textContent = saved.length + ' guardado' + (saved.length===1 ? '' : 's');
+    if (!items.length){
+      var e = document.createElement('div');
+      e.className = 'mine-empty';
+      e.textContent = q ? 'Sin resultados para «'+qIn.value+'».' : 'Aún no hay colores guardados. Usa «Guardar en mi biblioteca».';
+      mineGrid.appendChild(e);
+      renderSecChips();
+      return;
+    }
+    var bySec = {};
+    items.forEach(function(it){ (bySec[it.sec] = bySec[it.sec] || []).push(it); });
+    Object.keys(bySec).sort().forEach(function(s){
+      var h = document.createElement('div');
+      h.className = 'sec-head';
+      h.textContent = s + ' (' + bySec[s].length + ')';
+      mineGrid.appendChild(h);
+      bySec[s].forEach(function(it){ mineGrid.appendChild(card(it)); });
+    });
+    renderSecChips();
+  }
+
+  function card(it){
+    var rgb = color(it.l, it.c, it.h);
+    var el = document.createElement('div');
+    el.className = 'mine-card' + (it.h===H && it.l===L && it.c===C ? ' on' : '');
+    el.setAttribute('data-id', it.id);
+    var sw = document.createElement('div');
+    sw.className = 'mine-sw';
+    sw.style.background = hex(rgb);
+    el.appendChild(sw);
+    var info = document.createElement('div');
+    info.className = 'mine-info';
+    info.innerHTML = '<div class="mine-name">'+esc(it.name)+'</div><div class="mine-code">'+pad3(it.h)+'-'+pad2(it.l)+'-'+pad2(it.c)+'</div><div class="mine-sec">'+esc(it.sec)+'</div>';
+    el.appendChild(info);
+    var del = document.createElement('button');
+    del.className = 'mine-del';
+    del.title = 'Eliminar';
+    del.textContent = '\u00d7';
+    del.onclick = function(ev){ ev.stopPropagation(); saved = saved.filter(function(x){ return x.id!==it.id; }); persist(); renderSaved(); refreshSecList(); };
+    el.appendChild(del);
+    el.onclick = function(){ loadSaved(it); };
+    return el;
+  }
+
+  function loadSaved(it){
+    H = it.h; L = it.l; C = it.c;
+    sync();
+    customName = it.name;
+    nameIn.value = it.name;
+    secIn.value = it.sec;
+    byId('heroName').textContent = displayName();
+    byId('ficName').textContent = displayName();
+    renderSaved();
+  }
+
+  function markSelection(){
+    var cur = null;
+    for (var i=0;i<saved.length;i++){ if (saved[i].h===H && saved[i].l===L && saved[i].c===C){ cur = saved[i].id; break; } }
+    var nodes = mineGrid.querySelectorAll('.mine-card');
+    for (var j=0;j<nodes.length;j++){ nodes[j].className = nodes[j].getAttribute('data-id')===cur ? 'mine-card on' : 'mine-card'; }
+  }
+
+  function refreshSecList(){
+    var dl = byId('secList');
+    dl.innerHTML = '';
+    var seen = {};
+    saved.forEach(function(it){
+      if (!seen[it.sec]){ seen[it.sec]=1; var o=document.createElement('option'); o.value=it.sec; dl.appendChild(o); }
+    });
+    var o2 = document.createElement('option'); o2.value = suggestedSec(); dl.appendChild(o2);
+  }
+
+  qIn.addEventListener('input', renderSaved);
+
   sync();
+  renderSaved();
+  refreshSecList();
 })();
 </script>
 </body>
