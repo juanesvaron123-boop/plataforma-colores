@@ -30,6 +30,13 @@
   .plane-row { display:flex; gap:18px; flex-wrap:wrap; }
   .plane-row > div { flex:1 1 300px; min-width:260px; }
   #exp, #planeLC { background:#e9e6df; }
+  .lib-row { display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start; }
+  .lib-grid { flex:1.3 1 360px; min-width:280px; }
+  .ficha { flex:1 1 300px; min-width:260px; }
+  .ficha .swatch { height:130px; border-radius:10px; border:1px solid var(--line); margin-bottom:10px; transition:background .12s; }
+  .fname { font-size:18px; font-weight:800; margin-bottom:10px; }
+  #lib { width:100%; background:#e9e6df; border-radius:10px; cursor:pointer; }
+  .wheel-caps b { color:var(--ink); }
   #wheel { cursor:crosshair; }
   .wheel-caps { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; margin-top:8px; }
   .axis { display:flex; gap:20px; align-items:stretch; }
@@ -97,6 +104,31 @@
     </div>
   </div>
 
+  <div class="panel">
+    <h2>Biblioteca de colores · tonos y especificaciones</h2>
+    <div class="lib-row">
+      <div class="lib-grid">
+        <canvas id="lib" width="170" height="100"></canvas>
+        <div class="wheel-caps"><span>Croma → filas</span><span>Ligereza <b id="libLval">50</b></span><span style="text-align:right">columnas → Hue 0–160</span></div>
+        <input type="range" id="libL" min="0" max="99" value="50">
+        <div class="slider-range" style="display:flex; justify-content:space-between; font-family:Consolas,monospace; font-size:11px; color:var(--muted);"><span>Ligereza 0</span><span>Ligereza 99</span></div>
+        <p class="hint">Elige la ligereza con el control y haz clic en un chip para cargar su ficha.</p>
+      </div>
+      <div class="ficha">
+        <div class="swatch" id="ficSw"></div>
+        <div class="fname" id="ficName">—</div>
+        <div class="meta">
+          <span class="chip">Código <b id="ficCod">—</b></span>
+          <span class="chip">HEX <b id="ficHex">—</b></span>
+          <span class="chip">RGB <b id="ficRgb">—</b></span>
+          <span class="chip">HSL <b id="ficHsl">—</b></span>
+          <span class="chip">OKLCH <b id="ficOk">—</b></span>
+          <span class="chip">Segmento <b id="ficSeg">—</b></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="grid">
     <div style="display:flex; flex-direction:column; gap:24px;">
       <div class="panel">
@@ -142,7 +174,8 @@
 (function () {
   var H = 40, L = 50, C = 55;
   var hueEl = byId('hue'), hueREl = byId('hueR'), ligEl = byId('lig'), ligREl = byId('ligR'), cromaEl = byId('croma'), cromaREl = byId('cromaR');
-  var wheel = canv('wheel'), ramp = canv('rampH'), exp = canv('exp'), lc = canv('planeLC');
+  var wheel = canv('wheel'), ramp = canv('rampH'), exp = canv('exp'), lc = canv('planeLC'), lib = canv('lib');
+  var libL = 50;
   var WH = 420, WR = 186, WC = WH / 2;
   var segs = [
     { name:'Casi acromático',  short:'Claro · C bajo',   Lm:87, Cm:7 },
@@ -262,6 +295,50 @@
     lc.strokeRect(xc-1.5, yl-1.5, 3, 3);
   }
 
+  var HUE_NAMES = [[0,15,'Rojo'],[16,30,'Naranja'],[31,45,'Ámbar'],[46,60,'Amarillo'],[61,75,'Verde limón'],[76,90,'Verde'],[91,105,'Verde azulado'],[106,120,'Cian'],[121,132,'Azul'],[133,145,'Violeta'],[146,160,'Magenta']];
+  function toneName(h, l, c){
+    var base = 'Rojo';
+    for (var i=0;i<HUE_NAMES.length;i++){ if(h>=HUE_NAMES[i][0]&&h<=HUE_NAMES[i][1]){ base=HUE_NAMES[i][2]; break; } }
+    var sat = c<=14 ? 'grisáceo' : (c<=49 ? 'suave' : 'vibrante');
+    var lig = l>=75 ? 'claro' : (l>=45 ? 'medio' : 'oscuro');
+    return base+' '+sat+' '+lig;
+  }
+
+  function drawLib(){
+    var W = lib.canvas.width, Hh = lib.canvas.height;
+    var cw = W/17, ch = Hh/10;
+    for (var row=0;row<10;row++){
+      var c = Math.round(row*(99/9));
+      for (var col=0;col<17;col++){
+        var h = Math.round(col*(160/16));
+        var rgb = color(libL, c, h);
+        lib.fillStyle = 'rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+        lib.fillRect(col*cw, row*ch, cw+0.5, ch+0.5);
+      }
+    }
+    lib.fillStyle = 'rgba(255,255,255,.45)';
+    for (var x=0;x<=17;x++){ lib.fillRect(x*cw-0.5, 0, 1, Hh); }
+    for (var y=0;y<=10;y++){ lib.fillRect(0, y*ch-0.5, W, 1); }
+    var hc = Math.round(H/(160/16)), rc = Math.round(C/(99/9));
+    lib.lineWidth = 2.5; lib.strokeStyle = '#161616';
+    lib.strokeRect(hc*cw+0.75, rc*ch+0.75, cw-1.5, ch-1.5);
+  }
+
+  function renderFicha(){
+    var rgb = color(L, C, H);
+    var sw = byId('ficSw');
+    sw.style.background = hex(rgb);
+    byId('ficName').textContent = toneName(H, L, C);
+    byId('ficCod').textContent = pad3(H)+'-'+pad2(L)+'-'+pad2(C);
+    byId('ficHex').textContent = hex(rgb);
+    byId('ficRgb').textContent = rgb.join(', ');
+    var hsl = rgbToHsl(rgb[0],rgb[1],rgb[2]);
+    byId('ficHsl').textContent = hsl.join(', ');
+    byId('ficOk').textContent = 'L'+(L/99).toFixed(2)+' C'+(C/99*0.37).toFixed(2)+' H'+(H*2.25).toFixed(0);
+    byId('ficSeg').textContent = segs[segFor(L,C)].name;
+    drawLib();
+  }
+
   function segFor(l, c){
     var ci = c<=14 ? 0 : (c<=49 ? 1 : 2);
     var ri = l>=75 ? 0 : (l>=45 ? 1 : 2);
@@ -316,7 +393,7 @@
     byId('vRgb').textContent = rgb.join(', ');
     byId('vOk').textContent = 'L'+(L/99).toFixed(2)+' C'+(C/99*0.37).toFixed(2)+' H'+(H*2.25).toFixed(0);
     byId('vHsl').textContent = hsl.join(', ');
-    drawWheel(); drawRamp(); drawExp(); drawLC(); renderSegs();
+    drawWheel(); drawRamp(); drawExp(); drawLC(); renderSegs(); renderFicha();
   }
 
   function update(val){
@@ -361,6 +438,17 @@
     var c2 = clamp(Math.round(xc/(lc.canvas.width-1)*99),0,99);
     var l2 = clamp(99 - Math.round(yl/(lc.canvas.height-1)*99),0,99);
     update({ l:l2, c:c2 });
+  });
+  byId('libL').addEventListener('input', function(){
+    libL = clamp(+byId('libL').value, 0, 99);
+    byId('libLval').textContent = pad2(libL);
+    drawLib();
+  });
+  lib.canvas.addEventListener('click', function(e){
+    var r = lib.canvas.getBoundingClientRect();
+    var col = clamp(Math.floor((e.clientX-r.left)/r.width*17), 0, 16);
+    var row = clamp(Math.floor((e.clientY-r.top)/r.height*10), 0, 9);
+    update({ h:clamp(Math.round(col*(160/16)),0,160), l:libL, c:clamp(Math.round(row*(99/9)),0,99) });
   });
 
   function bind(el, ev, fn){ ['input','change'].forEach(function(e){ el.addEventListener(e, function(){ fn(+el.value); }); }); }
