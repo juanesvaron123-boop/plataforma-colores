@@ -7,11 +7,12 @@
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
   :root { --bg:#f6f4ef; --ink:#161616; --muted:#6b675f; --line:#d8d3c9; --card:#ffffff; --accent:#161616; }
-  body { background:var(--bg); color:var(--ink); font-family:'Segoe UI',system-ui,-apple-system,sans-serif; padding:28px; }
+  body { background:linear-gradient(180deg,#fbf9f5 0%,#f2efe9 100%); background-attachment:fixed; color:var(--ink); font-family:'Segoe UI',system-ui,-apple-system,sans-serif; padding:26px 28px 44px; }
   .wrap { max-width:1180px; margin:0 auto; }
-  header { display:flex; align-items:flex-end; justify-content:space-between; padding-bottom:20px; border-bottom:2px solid var(--ink); margin-bottom:24px; flex-wrap:wrap; gap:14px; }
-  header h1 { font-size:34px; font-weight:800; letter-spacing:-1px; line-height:1; }
-  header .tag { color:var(--muted); font-size:13px; margin-top:6px; letter-spacing:.04em; }
+  header { display:flex; align-items:center; justify-content:space-between; padding-bottom:18px; border-bottom:2px solid var(--ink); margin-bottom:20px; flex-wrap:wrap; gap:16px; }
+  header h1 { font-size:30px; font-weight:800; letter-spacing:-.5px; line-height:1.05; }
+  header .tag { color:var(--muted); font-size:13px; margin-top:6px; letter-spacing:.03em; }
+  header .tag b { color:var(--ink); }
   .manual-entry { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
   .manual-label { background:var(--ink); color:#fff; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.14em; padding:5px 10px; border-radius:7px; }
   .manual-format { font-family:Consolas,monospace; font-size:11px; color:var(--muted); letter-spacing:.04em; }
@@ -20,10 +21,24 @@
   .codebox input::placeholder { color:#6b6b6b; font-weight:400; font-size:18px; }
   .codebox.bad { outline:2px solid #e5484d; }
   @media (max-width:640px){ .manual-entry { align-items:flex-start; } }
+
+  .hero { border-radius:16px; height:88px; display:flex; align-items:center; justify-content:space-between; padding:0 24px; margin-bottom:22px; transition:background .15s; gap:14px; }
+  .hero-hex { font-family:Consolas,monospace; font-size:26px; font-weight:800; letter-spacing:.5px; text-shadow:0 1px 3px rgba(0,0,0,.28); }
+  .hero-code { font-family:Consolas,monospace; font-size:15px; font-weight:700; letter-spacing:2px; opacity:.94; text-shadow:0 1px 2px rgba(0,0,0,.25); }
+  .hero-name { font-size:14px; font-weight:600; opacity:.92; text-align:right; max-width:46%; text-shadow:0 1px 2px rgba(0,0,0,.25); }
+  @media (max-width:640px){ .hero { height:72px; flex-wrap:wrap; } .hero-name { display:none; } }
+  .fbtn { transition:background .12s, transform .12s; }
+  .fbtn:hover { transform:translateY(-1px); }
+  .folder { transition:transform .1s; }
+  .folder:hover { transform:scale(1.12); }
+  input[type=text]:focus { outline:2px solid rgba(79,140,255,.35); }
+  .slider-range { margin-top:4px; }
   .grid { display:grid; grid-template-columns:1.05fr .95fr; gap:24px; }
   @media (max-width:920px){ .grid { grid-template-columns:1fr; } }
-  .panel { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; }
-  .panel h2 { font-size:12px; text-transform:uppercase; letter-spacing:.14em; color:var(--muted); margin-bottom:16px; font-weight:700; }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px 24px; box-shadow:0 1px 2px rgba(22,22,22,.04), 0 10px 30px rgba(22,22,22,.05); }
+  .panel h2 { font-size:12px; text-transform:uppercase; letter-spacing:.16em; color:var(--muted); margin-bottom:16px; font-weight:800; display:flex; align-items:center; gap:9px; }
+  .panel h2::before { content:""; width:9px; height:9px; border-radius:3px; background:linear-gradient(135deg,var(--ink),#8a7bd4); display:inline-block; }
+  .grid { gap:22px; }
   .wheel-wrap { position:relative; display:flex; justify-content:center; }
   canvas { display:block; border-radius:12px; }
   #exp { background:#e9e6df; min-height:140px; }
@@ -96,6 +111,12 @@
       </div>
     </div>
   </header>
+
+  <div class="hero" id="hero">
+    <span class="hero-hex" id="heroHex">#000000</span>
+    <span class="hero-code" id="heroCode">000–00–00</span>
+    <span class="hero-name" id="heroName">Rojo vibrante medio</span>
+  </div>
 
   <div class="panel plane-panel">
     <h2>Plano de color</h2>
@@ -349,6 +370,16 @@
     }
   }
 
+  function renderHero(){
+    var rgb = color(L, C, H);
+    var hero = byId('hero');
+    hero.style.background = hex(rgb);
+    hero.style.color = luma(rgb)>150 ? '#161616' : '#ffffff';
+    byId('heroHex').textContent = hex(rgb);
+    byId('heroCode').textContent = pad3(H)+'\u2013'+pad2(L)+'\u2013'+pad2(C);
+    byId('heroName').textContent = toneName(H, L, C);
+  }
+
   function renderFicha(){
     var rgb = color(L, C, H);
     var idx = clamp(Math.round(H/(160/62)), 0, 62);
@@ -423,7 +454,7 @@
     byId('vRgb').textContent = rgb.join(', ');
     byId('vOk').textContent = 'L'+(L/99).toFixed(2)+' C'+(C/99*0.37).toFixed(2)+' H'+(H*2.25).toFixed(0);
     byId('vHsl').textContent = hsl.join(', ');
-    drawWheel(); drawRamp(); drawExp(); drawLC(); renderSegs(); renderFicha();
+    drawWheel(); drawRamp(); drawExp(); drawLC(); renderSegs(); renderFicha(); renderHero();
   }
 
   function update(val){
