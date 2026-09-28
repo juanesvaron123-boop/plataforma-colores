@@ -685,13 +685,20 @@
     var bySec = {};
     items.forEach(function(it){ (bySec[it.sec] = bySec[it.sec] || []).push(it); });
     Object.keys(bySec).sort().forEach(function(s){
+      var arr = bySec[s].slice().sort(cmpColor);
       var h = document.createElement('div');
       h.className = 'sec-head';
-      h.textContent = s + ' (' + bySec[s].length + ')';
+      h.textContent = s + ' (' + arr.length + ') · claro → oscuro';
       mineGrid.appendChild(h);
-      bySec[s].forEach(function(it){ mineGrid.appendChild(card(it)); });
+      arr.forEach(function(it){ mineGrid.appendChild(card(it)); });
     });
     renderSecChips();
+  }
+
+  function cmpColor(a, b){
+    if (a.l!==b.l) return b.l - a.l;
+    if (a.c!==b.c) return b.c - a.c;
+    return a.h - b.h;
   }
 
   function card(it){
