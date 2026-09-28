@@ -125,6 +125,9 @@
   .mine-empty { grid-column:1 / -1; color:var(--muted); font-size:13px; padding:18px; text-align:center; background:#faf8f4; border-radius:10px; }
   .mine-block { margin-bottom:22px; padding-bottom:22px; border-bottom:1px dashed var(--line); }
   .mine-block .save-bar { margin-top:0; padding-top:0; border-top:none; margin-bottom:16px; }
+  .serie-head { color:#8a5a26; margin-top:18px; }
+  .serie-card { background:#fdfaf3; }
+  .serie-tag { background:var(--ink); color:#fff; border-color:var(--ink); }
 </style>
 </head>
 <body>
@@ -165,7 +168,7 @@
       </div>
       <div class="sec-chips" id="secChips"></div>
       <div class="mine-grid" id="mineGrid"></div>
-      <p class="hint">Haz clic en un color guardado para cargarlo. Usa la × para quitarlo. Tus colores se guardan en este navegador.</p>
+      <p class="hint">Haz clic en un color guardado para cargarlo. Si hay una sección buscada, al seleccionar un color aparece también su serie completa de tonos (no guardados). Usa la × para quitar un guardado. Tus colores se guardan en este navegador.</p>
     </div>
     <div class="lib-row">
       <div class="lib-grid">
@@ -270,6 +273,7 @@
   var customName = null, prevC = {h:null,l:null,c:null};
   var saved = [];
   try { saved = JSON.parse(localStorage.getItem('pcolores')||'[]') || []; } catch(e){ saved = []; }
+  var activeSerie = null;
   function norm(s){ return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
   function esc(s){ return String(s).replace(/[&<>"']/g, function(ch){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]; }); }
   function persist(){ try { localStorage.setItem('pcolores', JSON.stringify(saved)); } catch(e){} }
@@ -692,6 +696,19 @@
       mineGrid.appendChild(h);
       arr.forEach(function(it){ mineGrid.appendChild(card(it)); });
     });
+    if (activeSerie){
+      var hasActive = false;
+      for (var si=0; si<items.length; si++){ if (items[si].h===activeSerie.h && items[si].l===activeSerie.l && items[si].c===activeSerie.c){ hasActive = true; break; } }
+      if (hasActive){
+        var sh = document.createElement('div');
+        sh.className = 'sec-head serie-head';
+        sh.textContent = 'Serie del color «' + activeSerie.name + '» (' + pad3(activeSerie.h) + '-' + pad2(activeSerie.l) + '-' + pad2(activeSerie.c) + ') · claro → oscuro · no guardados';
+        mineGrid.appendChild(sh);
+        for (var k=0;k<=10;k++){
+          mineGrid.appendChild(serieCard({ h: activeSerie.h, l: Math.round((10 - k) / 10 * 99), c: activeSerie.c }));
+        }
+      }
+    }
     renderSecChips();
   }
 
@@ -699,6 +716,23 @@
     if (a.l!==b.l) return b.l - a.l;
     if (a.c!==b.c) return b.c - a.c;
     return a.h - b.h;
+  }
+
+  function serieCard(t){
+    var rgb = color(t.l, t.c, t.h);
+    var el = document.createElement('div');
+    el.className = 'mine-card serie-card';
+    el.setAttribute('data-code', pad3(t.h)+'-'+pad2(t.l)+'-'+pad2(t.c));
+    var sw = document.createElement('div');
+    sw.className = 'mine-sw';
+    sw.style.background = hex(rgb);
+    el.appendChild(sw);
+    var info = document.createElement('div');
+    info.className = 'mine-info';
+    info.innerHTML = '<div class="mine-name">'+esc(toneName(t.h,t.l,t.c))+'</div><div class="mine-code">'+pad3(t.h)+'-'+pad2(t.l)+'-'+pad2(t.c)+'</div><div class="mine-sec serie-tag">serie</div>';
+    el.appendChild(info);
+    el.onclick = function(){ update({ h:t.h, l:t.l, c:t.c }); };
+    return el;
   }
 
   function card(it){
@@ -718,7 +752,7 @@
     del.className = 'mine-del';
     del.title = 'Eliminar';
     del.textContent = '\u00d7';
-    del.onclick = function(ev){ ev.stopPropagation(); saved = saved.filter(function(x){ return x.id!==it.id; }); persist(); renderSaved(); refreshSecList(); };
+    del.onclick = function(ev){ ev.stopPropagation(); saved = saved.filter(function(x){ return x.id!==it.id; }); if (activeSerie && it.h===activeSerie.h && it.l===activeSerie.l && it.c===activeSerie.c) activeSerie = null; persist(); renderSaved(); refreshSecList(); };
     el.appendChild(del);
     el.onclick = function(){ loadSaved(it); };
     return el;
@@ -726,6 +760,7 @@
 
   function loadSaved(it){
     H = it.h; L = it.l; C = it.c;
+    activeSerie = { h:it.h, l:it.l, c:it.c, sec:it.sec, name:it.name };
     sync();
     customName = it.name;
     nameIn.value = it.name;
@@ -738,8 +773,13 @@
   function markSelection(){
     var cur = null;
     for (var i=0;i<saved.length;i++){ if (saved[i].h===H && saved[i].l===L && saved[i].c===C){ cur = saved[i].id; break; } }
+    var code = pad3(H)+'-'+pad2(L)+'-'+pad2(C);
     var nodes = mineGrid.querySelectorAll('.mine-card');
-    for (var j=0;j<nodes.length;j++){ nodes[j].className = nodes[j].getAttribute('data-id')===cur ? 'mine-card on' : 'mine-card'; }
+    for (var j=0;j<nodes.length;j++){
+      var did = nodes[j].getAttribute('data-id');
+      var on = did ? (did===cur) : (nodes[j].getAttribute('data-code')===code);
+      nodes[j].className = on ? 'mine-card on' : ('mine-card' + (nodes[j].classList.contains('serie-card') ? ' serie-card' : ''));
+    }
   }
 
   function refreshSecList(){
