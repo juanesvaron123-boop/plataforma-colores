@@ -37,6 +37,15 @@
   .fname { font-size:18px; font-weight:800; margin-bottom:10px; }
   #lib { width:100%; background:#e9e6df; border-radius:10px; cursor:pointer; }
   .wheel-caps b { color:var(--ink); }
+  .lib-top { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+  .lib-title { font-size:13px; font-weight:700; }
+  .lib-filters { display:flex; gap:6px; }
+  .fbtn { background:#f1efe9; border:1px solid var(--line); border-radius:7px; padding:5px 10px; font-size:11px; font-weight:600; cursor:pointer; color:var(--ink); }
+  .fbtn.on { background:var(--ink); color:#fff; }
+  .folder-strip { display:flex; gap:3px; overflow-x:auto; padding-bottom:8px; margin-bottom:10px; }
+  .folder { width:26px; height:34px; min-width:26px; border-radius:4px; cursor:pointer; border:1px solid rgba(0,0,0,.18); font-family:Consolas,monospace; font-size:8px; color:#fff; display:flex; align-items:flex-end; justify-content:center; padding-bottom:2px; text-shadow:0 1px 2px rgba(0,0,0,.65); }
+  .folder.on { outline:2px solid var(--ink); outline-offset:-2px; }
+  .tool { position:fixed; pointer-events:none; background:var(--ink); color:#fff; font-family:Consolas,monospace; font-size:11px; padding:5px 9px; border-radius:7px; opacity:0; z-index:50; white-space:nowrap; }
   #wheel { cursor:crosshair; }
   .wheel-caps { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; margin-top:8px; }
   .axis { display:flex; gap:20px; align-items:stretch; }
@@ -108,11 +117,18 @@
     <h2>Biblioteca de colores · tonos y especificaciones</h2>
     <div class="lib-row">
       <div class="lib-grid">
-        <canvas id="lib" width="170" height="100"></canvas>
-        <div class="wheel-caps"><span>Croma → filas</span><span>Ligereza <b id="libLval">50</b></span><span style="text-align:right">columnas → Hue 0–160</span></div>
-        <input type="range" id="libL" min="0" max="99" value="50">
-        <div class="slider-range" style="display:flex; justify-content:space-between; font-family:Consolas,monospace; font-size:11px; color:var(--muted);"><span>Ligereza 0</span><span>Ligereza 99</span></div>
-        <p class="hint">Elige la ligereza con el control y haz clic en un chip para cargar su ficha.</p>
+        <div class="lib-top">
+          <span class="lib-title">63 carpetas por hue · 3.500 tonos</span>
+          <span class="lib-filters">
+            <button class="fbtn on" data-f="0">Todas</button>
+            <button class="fbtn" data-f="1">Vívidos / Neón</button>
+            <button class="fbtn" data-f="2">Blanco y negro</button>
+          </span>
+        </div>
+        <div class="folder-strip" id="folders"></div>
+        <canvas id="lib" width="320" height="200"></canvas>
+        <div class="wheel-caps"><span>Ligereza 99 ↑</span><span id="libHueTxt">Hue 040</span><span style="text-align:right">columnas → Croma 0–99</span></div>
+        <p class="hint">Cada carpeta muestra la página de un hue (arriba la ligereza 99, abajo la 0; de izquierda a derecha crece el croma). Pasa el ratón para ver su código de 7 dígitos y haz clic para cargar la ficha.</p>
       </div>
       <div class="ficha">
         <div class="swatch" id="ficSw"></div>
@@ -127,6 +143,7 @@
         </div>
       </div>
     </div>
+    <div class="tool" id="tool">—</div>
   </div>
 
   <div class="grid">
@@ -175,7 +192,8 @@
   var H = 40, L = 50, C = 55;
   var hueEl = byId('hue'), hueREl = byId('hueR'), ligEl = byId('lig'), ligREl = byId('ligR'), cromaEl = byId('croma'), cromaREl = byId('cromaR');
   var wheel = canv('wheel'), ramp = canv('rampH'), exp = canv('exp'), lc = canv('planeLC'), lib = canv('lib');
-  var libL = 50;
+  var FH = 40, libF = 0;
+  function folderHue(i){ return Math.round(i*(160/62)); }
   var WH = 420, WR = 186, WC = WH / 2;
   var segs = [
     { name:'Casi acromático',  short:'Claro · C bajo',   Lm:87, Cm:7 },
@@ -306,26 +324,38 @@
 
   function drawLib(){
     var W = lib.canvas.width, Hh = lib.canvas.height;
-    var cw = W/17, ch = Hh/10;
-    for (var row=0;row<10;row++){
-      var c = Math.round(row*(99/9));
-      for (var col=0;col<17;col++){
-        var h = Math.round(col*(160/16));
-        var rgb = color(libL, c, h);
+    var COLS = 10, ROWS = 10;
+    var cw = W/COLS, ch = Hh/ROWS;
+    lib.fillStyle = '#e9e6df'; lib.fillRect(0,0,W,Hh);
+    for (var row=0;row<ROWS;row++){
+      var l = Math.round((ROWS-1-row)*(99/(ROWS-1)));
+      for (var col=0;col<COLS;col++){
+        var c = Math.round(col*(99/(COLS-1)));
+        if (libF===1 && c<55) continue;
+        if (libF===2 && c>14) continue;
+        var rgb = color(l, c, FH);
         lib.fillStyle = 'rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
         lib.fillRect(col*cw, row*ch, cw+0.5, ch+0.5);
       }
     }
     lib.fillStyle = 'rgba(255,255,255,.45)';
-    for (var x=0;x<=17;x++){ lib.fillRect(x*cw-0.5, 0, 1, Hh); }
-    for (var y=0;y<=10;y++){ lib.fillRect(0, y*ch-0.5, W, 1); }
-    var hc = Math.round(H/(160/16)), rc = Math.round(C/(99/9));
-    lib.lineWidth = 2.5; lib.strokeStyle = '#161616';
-    lib.strokeRect(hc*cw+0.75, rc*ch+0.75, cw-1.5, ch-1.5);
+    for (var x=0;x<=COLS;x++){ lib.fillRect(x*cw-0.5, 0, 1, Hh); }
+    for (var y=0;y<=ROWS;y++){ lib.fillRect(0, y*ch-0.5, W, 1); }
+    if (Math.abs(H-FH) <= (160/62)/2 + 0.5){
+      var hc = Math.round(C/(99/(COLS-1)));
+      var rc = (ROWS-1) - Math.round(L/(99/(ROWS-1)));
+      lib.lineWidth = 2.5; lib.strokeStyle = '#161616';
+      lib.strokeRect(hc*cw+0.75, rc*ch+0.75, cw-1.5, ch-1.5);
+    }
   }
 
   function renderFicha(){
     var rgb = color(L, C, H);
+    var idx = clamp(Math.round(H/(160/62)), 0, 62);
+    FH = folderHue(idx);
+    byId('libHueTxt').textContent = 'Hue '+pad3(FH);
+    var fldr = document.querySelectorAll('.folder');
+    for (var i=0;i<fldr.length;i++){ fldr[i].className = 'folder' + (i===idx ? ' on' : ''); }
     var sw = byId('ficSw');
     sw.style.background = hex(rgb);
     byId('ficName').textContent = toneName(H, L, C);
@@ -439,17 +469,49 @@
     var l2 = clamp(99 - Math.round(yl/(lc.canvas.height-1)*99),0,99);
     update({ l:l2, c:c2 });
   });
-  byId('libL').addEventListener('input', function(){
-    libL = clamp(+byId('libL').value, 0, 99);
-    byId('libLval').textContent = pad2(libL);
-    drawLib();
-  });
-  lib.canvas.addEventListener('click', function(e){
-    var r = lib.canvas.getBoundingClientRect();
-    var col = clamp(Math.floor((e.clientX-r.left)/r.width*17), 0, 16);
+  var tool = byId('tool');
+  function cellXY(e, el){
+    var r = el.canvas.getBoundingClientRect();
+    var col = clamp(Math.floor((e.clientX-r.left)/r.width*10), 0, 9);
     var row = clamp(Math.floor((e.clientY-r.top)/r.height*10), 0, 9);
-    update({ h:clamp(Math.round(col*(160/16)),0,160), l:libL, c:clamp(Math.round(row*(99/9)),0,99) });
+    return { c: Math.round(col*(99/9)), l: Math.round((9-row)*(99/9)) };
+  }
+  lib.canvas.addEventListener('mousemove', function(e){
+    if (libF!==0) { tool.style.opacity = 0; return; }
+    var p = cellXY(e, lib);
+    var rgb = color(p.l, p.c, FH);
+    tool.style.opacity = 1;
+    tool.style.left = (e.clientX+14)+'px';
+    tool.style.top = (e.clientY+14)+'px';
+    tool.textContent = pad3(FH)+'-'+pad2(p.l)+'-'+pad2(p.c)+'  '+hex(rgb);
   });
+  lib.canvas.addEventListener('mouseleave', function(){ tool.style.opacity = 0; });
+  lib.canvas.addEventListener('click', function(e){
+    var p = cellXY(e, lib);
+    update({ h:FH, l:p.l, c:p.c });
+  });
+  var fs = byId('folders');
+  for (var fi=0;fi<63;fi++){
+    (function(fi){
+      var hx = folderHue(fi);
+      var b = document.createElement('div');
+      b.className = 'folder';
+      var rgb = color(50, 60, hx);
+      b.style.background = 'rgb('+rgb.join(',')+')';
+      b.textContent = pad3(hx);
+      b.title = 'Hue '+pad3(hx);
+      b.onclick = function(){ update({ h:hx }); };
+      fs.appendChild(b);
+    })(fi);
+  }
+  var fbtns = document.querySelectorAll('.fbtn');
+  for (var fb=0;fb<fbtns.length;fb++){
+    fbtns[fb].onclick = function(){
+      libF = +this.getAttribute('data-f');
+      for (var k=0;k<fbtns.length;k++){ fbtns[k].className = 'fbtn' + (k===libF ? ' on' : ''); }
+      drawLib();
+    };
+  }
 
   function bind(el, ev, fn){ ['input','change'].forEach(function(e){ el.addEventListener(e, function(){ fn(+el.value); }); }); }
   bind(hueEl, null, function(v){ update({ h:clamp(v,0,160) }); });
