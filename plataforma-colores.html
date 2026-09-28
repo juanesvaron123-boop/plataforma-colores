@@ -123,6 +123,8 @@
   .mine-del { position:absolute; top:6px; right:6px; width:22px; height:22px; line-height:1; border:none; border-radius:50%; background:rgba(22,22,22,.55); color:#fff; font-size:15px; cursor:pointer; }
   .mine-del:hover { background:#e5484d; }
   .mine-empty { grid-column:1 / -1; color:var(--muted); font-size:13px; padding:18px; text-align:center; background:#faf8f4; border-radius:10px; }
+  .mine-block { margin-bottom:22px; padding-bottom:22px; border-bottom:1px dashed var(--line); }
+  .mine-block .save-bar { margin-top:0; padding-top:0; border-top:none; margin-bottom:16px; }
 </style>
 </head>
 <body>
@@ -147,19 +149,24 @@
     <span class="hero-name" id="heroName">Rojo vibrante medio</span>
   </div>
 
-  <div class="panel mine-panel">
-    <h2>Mi biblioteca de colores</h2>
-    <div class="mine-top">
-      <input type="search" id="qIn" placeholder="Buscar por nombre, sección o código… ej. rojos" spellcheck="false">
-      <span class="mine-count" id="mineCount">0 guardados</span>
-    </div>
-    <div class="sec-chips" id="secChips"></div>
-    <div class="mine-grid" id="mineGrid"></div>
-    <p class="hint">Haz clic en un color para cargarlo. Usa la × para quitarlo. Tus colores se guardan en este navegador.</p>
-  </div>
-
   <div class="panel">
     <h2>Tonos de colores · especificaciones</h2>
+    <div class="mine-block">
+      <div class="save-bar">
+        <div class="field"><label>Nombre del color</label><input type="text" id="nameIn" maxlength="40"></div>
+        <div class="field"><label>Sección</label><input type="text" id="secIn" maxlength="24" list="secList"></div>
+        <datalist id="secList"></datalist>
+        <button class="save-btn" id="saveBtn">Guardar en mi biblioteca</button>
+        <span class="save-msg" id="saveMsg"></span>
+      </div>
+      <div class="mine-top">
+        <input type="search" id="qIn" placeholder="Buscar por nombre, sección o código… ej. rojos" spellcheck="false">
+        <span class="mine-count" id="mineCount">0 guardados</span>
+      </div>
+      <div class="sec-chips" id="secChips"></div>
+      <div class="mine-grid" id="mineGrid"></div>
+      <p class="hint">Haz clic en un color guardado para cargarlo. Usa la × para quitarlo. Tus colores se guardan en este navegador.</p>
+    </div>
     <div class="lib-row">
       <div class="lib-grid">
         <div class="lib-top">
@@ -189,6 +196,7 @@
       </div>
     </div>
     <div class="tool" id="tool">—</div>
+    </div>
   </div>
 
   <div class="grid">
@@ -232,13 +240,6 @@
       </div>
     </div>
     <div class="segs" id="segs"></div>
-    <div class="save-bar">
-      <div class="field"><label>Nombre del color</label><input type="text" id="nameIn" maxlength="40"></div>
-      <div class="field"><label>Sección</label><input type="text" id="secIn" maxlength="24" list="secList"></div>
-      <datalist id="secList"></datalist>
-      <button class="save-btn" id="saveBtn">Guardar en mi biblioteca</button>
-      <span class="save-msg" id="saveMsg"></span>
-    </div>
     <p class="legend">Regiones: arriba = ligereza alta · abajo = baja · izquierda = croma bajo · derecha = alto. Haz clic en una región para saltar a ella.</p>
   </div>
 
