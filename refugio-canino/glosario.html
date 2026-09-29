@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glosario</title>
+
+    <!-- CSS BÁSICO -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f6f3;
+            color: #2c3a34;
+        }
+
+        header {
+            background-color: #16302a;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        nav ul li a:hover {
+            color: #ffb020;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #16302a;
+            border-bottom: 2px solid #e07a2f;
+            padding-bottom: 5px;
+        }
+
+        /* Estilos específicos para la lista de términos */
+        dt {
+            font-weight: bold;
+            color: #16302a;
+            margin-top: 15px;
+            font-size: 1.1em;
+        }
+
+        dd {
+            margin-left: 0;
+            margin-bottom: 15px;
+            color: #55635c;
+            padding-left: 10px;
+            border-left: 3px solid #e07a2f;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            background-color: #16302a;
+            color: white;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 title="Glosario de términos">Glosario</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="glosario.html">Glosario</a></li>
+                <li><a href="nosotros.html">Nosotros</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Términos Clave</h2>
+            <!-- Lista de descripción -->
+            <dl>
+                <dt title="Definición de rescate">Rescate</dt>
+                <dd>Recogida de un animal abandonado o herido para devolverle la salud y buscarle un hogar.</dd>
+
+                <dt title="Definición de adopción">Adopción</dt>
+                <dd>Proceso legal y gratuito por el que una familia se hace cargo de un animal del refugio.</dd>
+
+                <dt title="Definición de residencia canina">Residencia canina</dt>
+                <dd>Instalación segura del refugio donde los animales esperan la adopción.</dd>
+
+                <dt title="Definición de esterilización">Esterilización</dt>
+                <dd>Intervención quirúrgica que evita la reproducción de los animales del refugio.</dd>
+
+                <dt title="Definición de microchip">Microchip</dt>
+                <dd>Identificador con un código único que registra al animal en caso de pérdida.</dd>
+            </dl>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 Refugio Canino Patitas Felices</p>
+    </footer>
+</body>
+</html>

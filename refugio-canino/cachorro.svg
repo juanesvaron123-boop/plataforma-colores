@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="400" height="200" role="img" aria-label="Cachorro del refugio junto a su pelota">
+  <rect width="400" height="200" fill="#fdf1e3"/>
+  <circle cx="130" cy="100" r="76" fill="#fbe4cb"/>
+  <ellipse cx="130" cy="172" rx="100" ry="13" fill="#f2d8ba"/>
+
+  <path d="M92 168c0-34 14-54 40-54s40 20 40 54z" fill="#9c682f"/>
+  <rect x="106" y="138" width="14" height="30" rx="7" fill="#7a4f22"/>
+  <rect x="146" y="138" width="14" height="30" rx="7" fill="#7a4f22"/>
+  <ellipse cx="113" cy="170" rx="12" ry="7" fill="#7a4f22"/>
+  <ellipse cx="153" cy="170" rx="12" ry="7" fill="#7a4f22"/>
+
+  <ellipse cx="98" cy="68" rx="13" ry="25" fill="#6b431c" transform="rotate(-20 98 68)"/>
+  <ellipse cx="164" cy="68" rx="13" ry="25" fill="#6b431c" transform="rotate(20 164 68)"/>
+  <circle cx="131" cy="74" r="34" fill="#9c682f"/>
+  <ellipse cx="131" cy="88" rx="20" ry="15" fill="#e2bd86"/>
+  <ellipse cx="131" cy="80" rx="7.5" ry="5.5" fill="#2c1d0e"/>
+  <path d="M131 85v6M120 91q11 8 22 0" stroke="#6b431c" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <circle cx="117" cy="70" r="4.6" fill="#2c1d0e"/>
+  <circle cx="145" cy="70" r="4.6" fill="#2c1d0e"/>
+  <circle cx="118.5" cy="68.4" r="1.6" fill="#ffffff"/>
+  <circle cx="146.5" cy="68.4" r="1.6" fill="#ffffff"/>
+  <path d="M124 94h14v8a7 7 0 0 1-14 0z" fill="#e8807f"/>
+
+  <circle cx="290" cy="136" r="31" fill="#e07a2f"/>
+  <path d="M266 124q24 10 48 0M266 148q24-10 48 0M290 106q-8 30 0 60" stroke="#fff3e2" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <rect x="248" y="163" width="86" height="12" rx="6" fill="#f2d8ba"/>
+</svg>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="400" height="200" role="img" aria-label="Perra rescatada esperando adopción">
+  <rect width="400" height="200" fill="#e4efe8"/>
+  <circle cx="200" cy="100" r="80" fill="#d7e8dc"/>
+  <ellipse cx="200" cy="178" rx="112" ry="14" fill="#c2d9cb"/>
+
+  <path d="M244 150c26-4 36-26 28-44" stroke="#b5762f" stroke-width="13" fill="none" stroke-linecap="round"/>
+
+  <path d="M150 172c0-42 16-66 50-66s50 24 50 66z" fill="#d99a4a"/>
+  <rect x="170" y="138" width="17" height="36" rx="8" fill="#b5762f"/>
+  <rect x="213" y="138" width="17" height="36" rx="8" fill="#b5762f"/>
+  <ellipse cx="178" cy="174" rx="15" ry="8" fill="#b5762f"/>
+  <ellipse cx="222" cy="174" rx="15" ry="8" fill="#b5762f"/>
+
+  <ellipse cx="160" cy="66" rx="16" ry="31" fill="#a96d2c" transform="rotate(-16 160 66)"/>
+  <ellipse cx="240" cy="66" rx="16" ry="31" fill="#a96d2c" transform="rotate(16 240 66)"/>
+  <circle cx="200" cy="72" r="41" fill="#d99a4a"/>
+  <ellipse cx="200" cy="89" rx="25" ry="18" fill="#f2d3a0"/>
+  <ellipse cx="200" cy="80" rx="9" ry="6.5" fill="#3a2a18"/>
+  <path d="M200 86v7M187 93q13 9 26 0" stroke="#8a5a26" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="181" cy="63" rx="11" ry="7" fill="#c07f33"/>
+  <ellipse cx="219" cy="63" rx="11" ry="7" fill="#c07f33"/>
+  <circle cx="182" cy="70" r="5" fill="#3a2a18"/>
+  <circle cx="218" cy="70" r="5" fill="#3a2a18"/>
+  <circle cx="183.6" cy="68.2" r="1.7" fill="#ffffff"/>
+  <circle cx="219.6" cy="68.2" r="1.7" fill="#ffffff"/>
+
+  <path d="M162 108q38 17 76 0v13q-38 17-76 0z" fill="#e07a2f"/>
+  <circle cx="200" cy="132" r="9" fill="#ffb020"/>
+  <circle cx="200" cy="132" r="4" fill="#e07a2f"/>
+</svg>

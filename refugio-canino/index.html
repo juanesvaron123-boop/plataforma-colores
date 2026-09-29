@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVISOS</title>
+
+    <!-- CSS BÁSICO -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f6f3;
+            color: #2c3a34;
+        }
+
+        header {
+            background-color: #16302a;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        nav ul li a:hover {
+            color: #ffb020;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        blockquote {
+            border-left: 4px solid #e07a2f;
+            margin: 10px 0;
+            padding-left: 15px;
+            color: #55635c;
+            font-style: italic;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            background-color: #16302a;
+            color: white;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 title="Portal principal del refugio"><span style="color: rgb(224, 122, 47);">REFUGIO CANINO PATITAS FELICES</span></h1>
+        <h2>Novedades del refugio</h2>
+        <nav>
+            <ul>
+                <li><a href="index.html" title="Inicio">Inicio</a></li>
+                <li><a href="glosario.html" title="Glosario">Glosario</a></li>
+                <li><a href="nosotros.html" title="Nosotros">Nosotros</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <!-- Lista ordenada para numerar los avisos -->
+            <ol>
+                <li>
+                    <p>Luna ya está lista para la adopción: fue rescatada en la carretera, recibió atención veterinaria y ahora espera una familia.</p>
+                    <a href="nosotros.html" title="Conoce al refugio">
+                        <img src="perro.svg" alt="Perra rescatada de pelaje dorado con collar" width="400" height="200">
+                    </a>
+                    <ul>
+                        <li>Esterilizada, desparasitada y con su microchip colocado.</li>
+                    </ul>
+                    <blockquote cite="nosotros.html">
+                        "Un rescate empieza con una llamada y termina con una familia."
+                    </blockquote>
+                    <p>El equipo de adopción afirma que este proceso fue <q>trascendental</q> para la perra.</p>
+                </li>
+
+                <hr>
+
+                <li>
+                    <p>La campaña de vacunación gratuita contra la rabia continúa todo el mes en las instalaciones del refugio.</p>
+                    <img src="cachorro.svg" alt="Cachorro del refugio junto a su pelota" width="400" height="200">
+                    <ul>
+                        <li>Atención de 10:00 a 14:00, sin costo para los perros del refugio y sus familias adoptantes.</li>
+                    </ul>
+                </li>
+            </ol>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 Refugio Canino Patitas Felices</p>
+    </footer>
+</body>
+</html>

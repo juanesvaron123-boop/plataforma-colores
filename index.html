@@ -128,6 +128,13 @@
   .serie-head { color:#8a5a26; margin-top:18px; }
   .serie-card { background:#fdfaf3; }
   .serie-tag { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .mapa-sec { margin-bottom:18px; }
+  .mapa-sec-head { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin-bottom:8px; }
+  .mapa-strip { display:flex; flex-wrap:wrap; gap:6px; }
+  .mapa-swatch { width:44px; height:54px; border-radius:8px; border:1px solid rgba(0,0,0,.14); cursor:pointer; transition:transform .1s; }
+  .mapa-swatch:hover { transform:translateY(-2px); }
+  .mapa-swatch.on { outline:3px solid var(--ink); outline-offset:-2px; }
+  .mapa-empty { color:var(--muted); font-size:13px; padding:16px; text-align:center; background:#faf8f4; border-radius:10px; }
 </style>
 </head>
 <body>
@@ -200,6 +207,12 @@
     </div>
     <div class="tool" id="tool">—</div>
     </div>
+  </div>
+
+  <div class="panel">
+    <h2>Mapa de la biblioteca</h2>
+    <div id="mapa"></div>
+    <p class="hint">Vista general de todas las secciones y sus tonos guardados, ordenados de claro a oscuro. Pasa el ratón para ver el nombre y código; haz clic para cargar un tono.</p>
   </div>
 
   <div class="grid">
@@ -650,6 +663,45 @@
     persist(); renderSaved(); refreshSecList();
   });
 
+  function renderMapa(){
+    var mapEl = byId('mapa');
+    mapEl.innerHTML = '';
+    if (!saved.length){
+      var e = document.createElement('div');
+      e.className = 'mapa-empty';
+      e.textContent = 'Todavía no has guardado colores. Usa «Guardar en mi biblioteca» para ir construyendo el mapa.';
+      mapEl.appendChild(e);
+      return;
+    }
+    var bySec = {};
+    saved.forEach(function(it){ (bySec[it.sec] = bySec[it.sec] || []).push(it); });
+    Object.keys(bySec).sort().forEach(function(s){
+      var arr = bySec[s].slice().sort(cmpColor);
+      var box = document.createElement('div');
+      box.className = 'mapa-sec';
+      var head = document.createElement('div');
+      head.className = 'mapa-sec-head';
+      head.textContent = s + ' · ' + arr.length + ' tono' + (arr.length===1 ? '' : 's') + ' · claro → oscuro';
+      box.appendChild(head);
+      var strip = document.createElement('div');
+      strip.className = 'mapa-strip';
+      arr.forEach(function(it){ strip.appendChild(mapSwatch(it)); });
+      box.appendChild(strip);
+      mapEl.appendChild(box);
+    });
+  }
+
+  function mapSwatch(it){
+    var rgb = color(it.l, it.c, it.h);
+    var el = document.createElement('div');
+    el.className = 'mapa-swatch' + (it.h===H && it.l===L && it.c===C ? ' on' : '');
+    el.setAttribute('data-code', pad3(it.h)+'-'+pad2(it.l)+'-'+pad2(it.c));
+    el.style.background = hex(rgb);
+    el.title = it.name + ' · ' + pad3(it.h)+'-'+pad2(it.l)+'-'+pad2(it.c) + ' · ' + it.sec;
+    el.onclick = function(){ loadSaved(it); };
+    return el;
+  }
+
   function renderSecChips(){
     secChips.innerHTML = '';
     var q = norm(qIn.value).trim(), qn = norm(qIn.value);
@@ -709,6 +761,7 @@
         }
       }
     }
+    renderMapa();
     renderSecChips();
   }
 
@@ -780,6 +833,8 @@
       var on = did ? (did===cur) : (nodes[j].getAttribute('data-code')===code);
       nodes[j].className = on ? 'mine-card on' : ('mine-card' + (nodes[j].classList.contains('serie-card') ? ' serie-card' : ''));
     }
+    var ms = byId('mapa').querySelectorAll('.mapa-swatch');
+    for (var k=0;k<ms.length;k++){ ms[k].className = ms[k].getAttribute('data-code')===code ? 'mapa-swatch on' : 'mapa-swatch'; }
   }
 
   function refreshSecList(){
