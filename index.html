@@ -125,6 +125,8 @@
   .mine-empty { grid-column:1 / -1; color:var(--muted); font-size:13px; padding:18px; text-align:center; background:#faf8f4; border-radius:10px; }
   .mine-block { margin-bottom:22px; padding-bottom:22px; border-bottom:1px dashed var(--line); }
   .mine-block .save-bar { margin-top:0; padding-top:0; border-top:none; margin-bottom:16px; }
+  .mapa-block { margin-top:24px; padding-top:22px; border-top:1px dashed var(--line); }
+  .mapa-block h2 { margin-bottom:14px; }
   .serie-head { color:#8a5a26; margin-top:18px; }
   .serie-card { background:#fdfaf3; }
   .serie-tag { background:var(--ink); color:#fff; border-color:var(--ink); }
@@ -207,12 +209,11 @@
     </div>
     <div class="tool" id="tool">—</div>
     </div>
-  </div>
-
-  <div class="panel">
-    <h2>Mapa de la biblioteca</h2>
-    <div id="mapa"></div>
-    <p class="hint">Vista general de todas las secciones y sus tonos guardados, ordenados de claro a oscuro. Pasa el ratón para ver el nombre y código; haz clic para cargar un tono.</p>
+    <div class="mapa-block">
+      <h2>Mapa de la biblioteca</h2>
+      <div id="mapa"></div>
+      <p class="hint">Vista general de todas las secciones y sus tonos guardados, ordenados de claro a oscuro. Pasa el ratón para ver el nombre y código; haz clic para cargar un tono.</p>
+    </div>
   </div>
 
   <div class="grid">
