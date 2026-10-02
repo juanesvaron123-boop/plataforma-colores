@@ -474,6 +474,11 @@
     gs.sort(function(a,b){ var ia=GAMAS.indexOf(a), ib=GAMAS.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib); });
     gs.forEach(function(g){
       var gItems = list.filter(function(lp){ return lp.g===g; });
+      gItems.sort(function(a,b){
+        if (a.l!==b.l) return b.l-a.l;
+        if (a.c!==b.c) return b.c-a.c;
+        return a.h-b.h;
+      });
       var hdr = document.createElement('div');
       hdr.className = 'lp-gama';
       var dot = document.createElement('span');
