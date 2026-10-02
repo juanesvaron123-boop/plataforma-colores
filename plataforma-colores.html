@@ -146,6 +146,15 @@
   .mapa-swatch.sugg { border:2px dashed #8ea8d8; }
   .mapa-add { position:absolute; bottom:3px; right:3px; width:18px; height:18px; line-height:1; border:none; border-radius:50%; background:#3b5bbf; color:#fff; font-size:13px; font-weight:700; cursor:pointer; }
   .mapa-add:hover { background:#27448f; }
+  .ma-grid-wrap { overflow-x:auto; padding-bottom:4px; }
+  .ma-grid { display:grid; grid-template-columns:34px repeat(10,46px); gap:3px; width:max-content; }
+  .ma-label { display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:var(--muted); }
+  .ma-cell { width:46px; height:46px; border-radius:6px; border:1px solid rgba(0,0,0,.14); cursor:pointer; position:relative; display:flex; align-items:center; justify-content:center; transition:transform .1s; }
+  .ma-cell:hover { transform:translateY(-2px); }
+  .ma-cell.on { outline:3px solid var(--ink); outline-offset:-2px; }
+  .ma-cell.sugg { border:2px dashed #8ea8d8; }
+  .ma-cell .ma-count { position:absolute; top:2px; right:3px; background:rgba(0,0,0,.5); color:#fff; font-size:9px; font-weight:700; padding:0 4px; border-radius:8px; }
+  .ma-cell .mapa-add { width:18px; height:18px; font-size:13px; }
   .mapa-empty { color:var(--muted); font-size:13px; padding:16px; text-align:center; background:#faf8f4; border-radius:10px; }
 </style>
 </head>
@@ -222,7 +231,7 @@
     <div class="mapa-block">
       <h2>Mapa de la biblioteca</h2>
       <div id="mapa"></div>
-      <p class="hint">Al seleccionar una sección (chip o buscador), el mapa muestra solo los tonos de esa sección más sus faltantes propuestos (punteados): clic para probar y + para guardarlos. Sin selección, se ven todas las secciones. Pasa el ratón para ver el nombre y código.</p>
+      <p class="hint">Al seleccionar una sección, el mapa la dibuja como una cuadrícula de coordenadas: cada casilla es un intervalo de Ligereza (filas) × Croma (columnas). Las casillas llenas son tonos guardados (clic para cargar; varias comparten casilla con «×n»); las punteadas son faltantes propuestos (clic para probar, + para guardarlo). Sin selección se ven todas las secciones en filas. Pasa el ratón para ver los códigos.</p>
     </div>
   </div>
 
@@ -759,13 +768,19 @@
       box.className = 'mapa-sec' + (selSec===s ? ' mapa-sec-on' : '');
       var head = document.createElement('div');
       head.className = 'mapa-sec-head';
-      head.textContent = s + ' · ' + arr.length + ' tono' + (arr.length===1 ? '' : 's') + ' · claro → oscuro';
+      head.textContent = s + ' · ' + arr.length + ' tono' + (arr.length===1 ? '' : 's') + (selSec===s ? ' · gama por coordenadas (abajo Ligereza, derecha Croma)' : ' · claro → oscuro');
       box.appendChild(head);
-      var strip = document.createElement('div');
-      strip.className = 'mapa-strip';
-      arr.forEach(function(it){ strip.appendChild(mapSwatch(it)); });
-      if (selSec === s) missingTones(s).forEach(function(m){ strip.appendChild(mapMissSwatch(m, s)); });
-      box.appendChild(strip);
+      if (selSec === s){
+        var wrap = document.createElement('div');
+        wrap.className = 'ma-grid-wrap';
+        wrap.appendChild(mapaGrid(s));
+        box.appendChild(wrap);
+      } else {
+        var strip = document.createElement('div');
+        strip.className = 'mapa-strip';
+        arr.forEach(function(it){ strip.appendChild(mapSwatch(it)); });
+        box.appendChild(strip);
+      }
       mapEl.appendChild(box);
     });
   }
@@ -796,6 +811,75 @@
     el.appendChild(add);
     el.onclick = function(){ update({ h:m.h, l:m.l, c:m.c }); };
     return el;
+  }
+
+  function secCenterH(sec){
+    var minH = 160, maxH = 0;
+    saved.forEach(function(x){ if (x.sec===sec){ if (x.h<minH) minH=x.h; if (x.h>maxH) maxH=x.h; } });
+    if (maxH===0) return 80;
+    return Math.round((minH+maxH)/2);
+  }
+
+  function mapaGrid(sec){
+    var grid = document.createElement('div');
+    grid.className = 'ma-grid';
+    var corner = document.createElement('div');
+    corner.className = 'ma-label';
+    grid.appendChild(corner);
+    for (var Cb=0; Cb<10; Cb++){
+      var th = document.createElement('div');
+      th.className = 'ma-label';
+      th.textContent = pad2(Cb*10+5);
+      th.title = 'Croma ' + Cb*10 + '-' + (Cb*10+9);
+      grid.appendChild(th);
+    }
+    for (var Lb=9; Lb>=0; Lb--){
+      var lh = document.createElement('div');
+      lh.className = 'ma-label';
+      lh.textContent = pad2(Lb*10+5);
+      lh.title = 'Ligereza ' + Lb*10 + '-' + (Lb*10+9);
+      grid.appendChild(lh);
+      for (var c2=0; c2<10; c2++){ grid.appendChild(gridCell(Lb, c2, sec)); }
+    }
+    return grid;
+  }
+
+  function gridCell(Lb, Cb, sec){
+    var lo = Lb*10, co = Cb*10;
+    var inCell = [];
+    saved.forEach(function(x){ if (x.sec===sec && x.l>=lo && x.l<=lo+9 && x.c>=co && x.c<=co+9) inCell.push(x); });
+    var cell = document.createElement('div');
+    if (inCell.length){
+      inCell.sort(function(a,b){
+        return (Math.abs(a.l-(lo+5))+Math.abs(a.c-(co+5))) - (Math.abs(b.l-(lo+5))+Math.abs(b.c-(co+5)));
+      });
+      var rep = inCell[0];
+      cell.className = 'ma-cell' + (rep.h===H && rep.l===L && rep.c===C ? ' on' : '');
+      cell.setAttribute('data-code', pad3(rep.h)+'-'+pad2(rep.l)+'-'+pad2(rep.c));
+      cell.style.background = hex(color(rep.l, rep.c, rep.h));
+      cell.title = sec + ': ' + inCell.map(function(x){ return pad3(x.h)+'-'+pad2(x.l)+'-'+pad2(x.c)+' '+(x.name||toneName(x.h,x.l,x.c)); }).join('\n');
+      cell.onclick = function(){ loadSaved(rep); };
+      if (inCell.length>1){
+        var bd = document.createElement('span');
+        bd.className = 'ma-count';
+        bd.textContent = '×'+inCell.length;
+        cell.appendChild(bd);
+      }
+    } else {
+      var m = { h: secCenterH(sec), l: lo+5, c: co+5 };
+      cell.className = 'ma-cell sugg';
+      cell.setAttribute('data-code', pad3(m.h)+'-'+pad2(m.l)+'-'+pad2(m.c));
+      cell.style.background = hex(color(m.l, m.c, m.h));
+      cell.title = 'Faltante propuesto · ' + toneName(m.h, m.l, m.c) + ' · ' + pad3(m.h)+'-'+pad2(m.l)+'-'+pad2(m.c);
+      cell.onclick = function(){ update({ h:m.h, l:m.l, c:m.c }); };
+      var add = document.createElement('button');
+      add.className = 'mapa-add';
+      add.title = 'Guardar en ' + sec;
+      add.textContent = '+';
+      add.onclick = function(ev){ ev.stopPropagation(); quickAdd(m, sec); };
+      cell.appendChild(add);
+    }
+    return cell;
   }
 
   function renderSecChips(){
@@ -954,6 +1038,11 @@
     }
     var ms = byId('mapa').querySelectorAll('.mapa-swatch');
     for (var k=0;k<ms.length;k++){ ms[k].className = ms[k].getAttribute('data-code')===code ? 'mapa-swatch on' : 'mapa-swatch'; }
+    var mc = byId('mapa').querySelectorAll('.ma-cell');
+    for (var m2=0;m2<mc.length;m2++){
+      var isSugg = mc[m2].classList.contains('sugg');
+      mc[m2].className = mc[m2].getAttribute('data-code')===code ? 'ma-cell on' : (isSugg ? 'ma-cell sugg' : 'ma-cell');
+    }
   }
 
   function refreshSecList(){
