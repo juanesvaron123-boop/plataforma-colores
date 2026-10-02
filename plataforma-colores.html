@@ -33,17 +33,14 @@
   .folder:hover { transform:scale(1.12); }
   input[type=text]:focus { outline:2px solid rgba(79,140,255,.35); }
   .slider-range { margin-top:4px; }
-  .grid { display:grid; grid-template-columns:1.05fr .95fr; gap:24px; }
-  @media (max-width:920px){ .grid { grid-template-columns:1fr; } }
+.wrap { max-width:1180px; margin:0 auto; }
   .panel { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px 24px; box-shadow:0 1px 2px rgba(22,22,22,.04), 0 10px 30px rgba(22,22,22,.05); }
   .panel h2 { font-size:12px; text-transform:uppercase; letter-spacing:.16em; color:var(--muted); margin-bottom:16px; font-weight:800; display:flex; align-items:center; gap:9px; }
   .panel h2::before { content:""; width:9px; height:9px; border-radius:3px; background:linear-gradient(135deg,var(--ink),#8a7bd4); display:inline-block; }
   .result-panel .result-body { display:grid; grid-template-columns:minmax(200px,1.1fr) 1fr; gap:20px; margin-bottom:16px; }
   .result-meta { display:flex; flex-direction:column; justify-content:center; gap:10px; }
   @media (max-width:680px){ .result-panel .result-body { grid-template-columns:1fr; } }
-  .wheel-wrap { position:relative; display:flex; justify-content:center; }
   canvas { display:block; border-radius:12px; }
-  #exp { background:#e9e6df; min-height:140px; }
   .lib-row { display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start; }
   .lib-grid { flex:1.3 1 360px; min-width:280px; }
   .ficha { flex:1 1 300px; min-width:260px; }
@@ -60,7 +57,6 @@
   .folder { width:26px; height:34px; min-width:26px; border-radius:4px; cursor:pointer; border:1px solid rgba(0,0,0,.18); font-family:Consolas,monospace; font-size:8px; color:#fff; display:flex; align-items:flex-end; justify-content:center; padding-bottom:2px; text-shadow:0 1px 2px rgba(0,0,0,.65); }
   .folder.on { outline:2px solid var(--ink); outline-offset:-2px; }
   .tool { position:fixed; pointer-events:none; background:var(--ink); color:#fff; font-family:Consolas,monospace; font-size:11px; padding:5px 9px; border-radius:7px; opacity:0; z-index:50; white-space:nowrap; }
-  #wheel { cursor:crosshair; }
   .wheel-caps { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; margin-top:8px; }
   .axis { display:flex; gap:20px; align-items:stretch; }
   #rampH { cursor:ns-resize; height:340px; width:48px; border-radius:12px; }
@@ -91,6 +87,20 @@
   .seg small { font-weight:400; text-transform:none; letter-spacing:0; opacity:.85; font-size:9px; }
   .legend { font-size:11px; color:var(--muted); margin-top:12px; line-height:1.5; }
   .legend b { color:var(--ink); }
+  .lp-chips { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 14px; }
+  .lp-chip { border:1px solid var(--line); background:#fff; border-radius:999px; padding:5px 12px; font-size:11px; font-weight:700; cursor:pointer; color:#5c5548; transition:all .15s; }
+  .lp-chip.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .lp-grid { display:flex; flex-wrap:wrap; gap:10px; }
+  .lp-card { width:164px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; cursor:pointer; transition:transform .12s, box-shadow .12s; }
+  .lp-card:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.10); }
+  .lp-card.on { outline:3px solid var(--ink); outline-offset:2px; }
+  .lp-sw { height:76px; }
+  .lp-info { padding:8px 10px 10px; }
+  .lp-name { font-size:12px; font-weight:800; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lp-brand { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; padding:1px 6px; border-radius:6px; display:inline-block; margin:5px 0 6px; }
+  .lp-brand b { font-weight:800; color:#fff; }
+  .lp-code { font-family:Consolas, monospace; font-size:10px; color:var(--muted); }
+  .lp-comp { font-size:10px; color:#3b5bbf; margin-top:5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .full { margin-top:24px; }
   .hint { font-size:12px; color:var(--muted); margin-top:8px; }
   .save-bar { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin:20px 0 2px; padding-top:18px; border-top:1px dashed var(--line); }
@@ -198,6 +208,18 @@
       <div class="mine-grid" id="mineGrid"></div>
       <p class="hint">Haz clic en un color guardado para cargarlo. Si hay una sección buscada, al seleccionar un color aparece también su serie completa de tonos (no guardados). Usa la × para quitar un guardado. Tus colores se guardan en este navegador.</p>
     </div>
+    <div class="tool" id="tool">—</div>
+    </div>
+  </div>
+
+  <div class="panel mapa-block">
+    <h2>Mapa de la biblioteca</h2>
+    <div id="mapa"></div>
+    <p class="hint">Las propuestas de tendencia (Coloro · Pantone · maquillaje) aparecen solo aquí. Al seleccionar una sección, el mapa es una cuadrícula Ligereza × Croma: casillas llenas = guardados (clic cargarlos); punteadas = tendencias que faltan (clic probar, + guardar). Sin selección se ven todas las secciones en filas.</p>
+  </div>
+
+  <div class="panel">
+    <h2>Carpetas por Hue · 63 carpetas · 3.500 tonos</h2>
     <div class="lib-row">
       <div class="lib-grid">
         <div class="lib-top">
@@ -226,34 +248,6 @@
         </div>
       </div>
     </div>
-    <div class="tool" id="tool">—</div>
-    </div>
-  </div>
-
-  <div class="grid">
-    <div style="display:flex; flex-direction:column; gap:24px;">
-      <div class="panel">
-        <h2>Rueda de Hue · el croma crece hacia afuera</h2>
-        <div class="wheel-wrap"><canvas id="wheel" width="420" height="420"></canvas></div>
-        <div class="wheel-caps"><span>· centro = croma 00</span><span>borde = croma 99 ·</span></div>
-        <p class="hint">Haz clic en la rueda para elegir Hue (ángulo) y Croma (distancia al centro).</p>
-      </div>
-    </div>
-
-    <div style="display:flex; flex-direction:column; gap:24px;">
-      <div class="panel">
-        <h2>Eje vertical de Ligereza</h2>
-        <div class="axis">
-          <canvas id="rampH" width="60" height="340"></canvas>
-          <div class="ramp-ticks"><span>99</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
-          <div class="fields">
-            <div class="field"><div class="row"><label>Hue</label><span class="limits">000–160</span></div><div class="range"><input type="text" id="hue" value="040" maxlength="3" inputmode="numeric"><input type="range" id="hueR" min="0" max="160"></div></div>
-            <div class="field"><div class="row"><label>Ligereza</label><span class="limits">00–99</span></div><div class="range"><input type="text" id="lig" value="050" maxlength="2" inputmode="numeric"><input type="range" id="ligR" min="0" max="99"></div></div>
-            <div class="field"><div class="row"><label>Croma</label><span class="limits">00–99</span></div><div class="range"><input type="text" id="croma" value="055" maxlength="2" inputmode="numeric"><input type="range" id="cromaR" min="0" max="99"></div></div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <div class="panel result-panel">
@@ -274,10 +268,24 @@
     <p class="legend">Regiones: arriba = ligereza alta · abajo = baja · izquierda = croma bajo · derecha = alto. Haz clic en una región para saltar a ella.</p>
   </div>
 
-  <div class="panel mapa-block">
-    <h2>Mapa de la biblioteca</h2>
-    <div id="mapa"></div>
-    <p class="hint">Las propuestas de tendencia (Coloro · Pantone · maquillaje) aparecen solo aquí. Al seleccionar una sección, el mapa es una cuadrícula Ligereza × Croma: casillas llenas = guardados (clic cargarlos); punteadas = tendencias que faltan (clic probar, + guardar). Sin selección se ven todas las secciones en filas.</p>
+  <div class="panel">
+    <h2>Eje vertical de Ligereza</h2>
+    <div class="axis">
+      <canvas id="rampH" width="60" height="340"></canvas>
+      <div class="ramp-ticks"><span>99</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
+      <div class="fields">
+        <div class="field"><div class="row"><label>Hue</label><span class="limits">000–160</span></div><div class="range"><input type="text" id="hue" value="040" maxlength="3" inputmode="numeric"><input type="range" id="hueR" min="0" max="160"></div></div>
+        <div class="field"><div class="row"><label>Ligereza</label><span class="limits">00–99</span></div><div class="range"><input type="text" id="lig" value="050" maxlength="2" inputmode="numeric"><input type="range" id="ligR" min="0" max="99"></div></div>
+        <div class="field"><div class="row"><label>Croma</label><span class="limits">00–99</span></div><div class="range"><input type="text" id="croma" value="055" maxlength="2" inputmode="numeric"><input type="range" id="cromaR" min="0" max="99"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Referencia de labiales · Maybelline · NYX · CYZONE · Ésika</h2>
+    <div class="lp-chips" id="lpChips"></div>
+    <div class="lp-grid" id="lpGrid"></div>
+    <p class="hint">Tonos de labiales de referencia para comparar con tus guardados. Haz clic en un labial para cargarlo en la plataforma; cada uno indica el tono guardado más parecido (≈). Los códigos están convertidos a HLC (Hue-Ligereza-Croma) con la misma matemática de la página.</p>
   </div>
 </div>
 
@@ -285,7 +293,7 @@
 (function () {
   var H = 40, L = 50, C = 55;
   var hueEl = byId('hue'), hueREl = byId('hueR'), ligEl = byId('lig'), ligREl = byId('ligR'), cromaEl = byId('croma'), cromaREl = byId('cromaR');
-  var wheel = canv('wheel'), ramp = canv('rampH'), lib = canv('lib');
+  var ramp = canv('rampH'), lib = canv('lib');
   var FH = 40, libF = 0;
   function folderHue(i){ return Math.round(i*(160/62)); }
   var customName = null, prevC = {h:null,l:null,c:null};
@@ -297,7 +305,7 @@
   function persist(){ try { localStorage.setItem('pcolores', JSON.stringify(saved)); } catch(e){} }
   function suggestedSec(){ return toneName(H,L,C).split(' ')[0]; }
   function displayName(){ return (customName && customName.trim()) ? customName.trim() : toneName(H,L,C); }
-  var WH = 420, WR = 186, WC = WH / 2;
+  
   var segs = [
     { name:'Casi acromático',  short:'Claro · C bajo',   Lm:87, Cm:7 },
     { name:'Pastel',           short:'Claro · C medio',  Lm:87, Cm:32 },
@@ -344,24 +352,118 @@
   function color(l, c, hue){ return oklchToRgb(l/99, c/99*0.37, hue*2.25); }
   function luma(rgb){ return rgb[0]*0.299+rgb[1]*0.587+rgb[2]*0.114; }
 
-  function drawWheel(){
-    var d = wheel.createImageData(WH, WH), i = 0;
-    for (var y=0;y<WH;y++) for (var x=0;x<WH;x++){
-      var dx=x-WC, dy=y-WC, dist=Math.sqrt(dx*dx+dy*dy);
-      if (dist>WR){ d.data[i++]=245; d.data[i++]=242; d.data[i++]=239; d.data[i++]=255; continue; }
-      var ang = Math.atan2(dx, -dy) * 180/Math.PI; if (ang<0) ang+=360;
-      var hue = Math.round(ang/360*160);
-      var chr = Math.round(dist/WR*99);
-      var rgb = color(L, clamp(chr,0,99), hue);
-      d.data[i++]=rgb[0]; d.data[i++]=rgb[1]; d.data[i++]=rgb[2]; d.data[i++]=255;
-    }
-    wheel.putImageData(d,0,0);
-    wheel.lineWidth = 1.4; wheel.strokeStyle = '#d8d3c9';
-    for (var f=0.25; f<=1; f+=0.25){ wheel.beginPath(); wheel.arc(WC,WC,WR*f,0,Math.PI*2); wheel.stroke(); }
-    wheel.strokeStyle = '#161616'; wheel.beginPath();
-    wheel.moveTo(WC, WC-WR); wheel.lineTo(WC, WC-WR-14); wheel.stroke();
-    wheel.fillStyle = '#161616'; wheel.font = '11px Consolas, monospace'; wheel.fillText('0', WC-6, WC-WR-16);
+  function rgbToHlc(hx){
+    var n = hx.replace('#','');
+    var r = parseInt(n.slice(0,2),16)/255, g = parseInt(n.slice(2,4),16)/255, b = parseInt(n.slice(4,6),16)/255;
+    function toLin(x){ return x<=0.04045 ? x/12.92 : Math.pow((x+0.055)/1.055, 2.4); }
+    r=toLin(r); g=toLin(g); b=toLin(b);
+    var l = 0.4122214708*r + 0.5363325363*g + 0.0514459929*b;
+    var m = 0.2119034982*r + 0.6806995451*g + 0.1073969566*b;
+    var s = 0.0883024619*r + 0.2817188376*g + 0.6299787005*b;
+    var lc = Math.cbrt(l), mc = Math.cbrt(m), sc = Math.cbrt(s);
+    var Lo = 0.2104542553*lc + 0.7936177850*mc - 0.0040720468*sc;
+    var a = 1.9779984951*lc - 2.4285922050*mc + 0.4505937099*sc;
+    var bb = 0.0259040371*lc + 0.7827717662*mc - 0.8086757660*sc;
+    var Co = Math.sqrt(a*a+bb*bb);
+    var hd = Math.atan2(bb, a) * 180/Math.PI; if (hd<0) hd += 360;
+    return { l: clamp(Math.round(Lo*99),0,99), c: clamp(Math.round(Co/0.37*99),0,99), h: clamp(Math.round(hd/2.25),0,160) };
   }
+
+  var LIPSTICKS = [
+    ['Maybelline','SuperStay Matte Ink','Pioneer','#C91F37'],
+    ['Maybelline','SuperStay Matte Ink','Seduction','#8E2437'],
+    ['Maybelline','SuperStay Matte Ink','Devotion','#E34A6F'],
+    ['Maybelline','Color Sensational','Divine Wine','#6B2836'],
+    ['Maybelline','Color Sensational','Touch of Spice','#B75A50'],
+    ['Maybelline','Color Sensational','Nude Nuance','#C8997F'],
+    ['NYX','Soft Matte Lip Cream','Amsterdam','#C2242F'],
+    ['NYX','Soft Matte Lip Cream','Copenhagen','#7D2F57'],
+    ['NYX','Soft Matte Lip Cream','Transylvania','#472032'],
+    ['NYX','Soft Matte Lip Cream','Prague','#D7627C'],
+    ['NYX','Soft Matte Lip Cream','London','#C78E80'],
+    ['NYX','Soft Matte Lip Cream','Sao Paulo','#E26D5A'],
+    ['CYZONE','Colección','Rojo pasión','#C31226'],
+    ['CYZONE','Colección','Terracota','#B65A45'],
+    ['CYZONE','Colección','Vino','#5F2336'],
+    ['CYZONE','Colección','Nude rosado','#D3A08D'],
+    ['CYZONE','Colección','Coral','#E26D5A'],
+    ['CYZONE','Colección','Berry','#933B5C'],
+    ['Ésika','Labial','Rojo fuego','#C01E35'],
+    ['Ésika','Labial','Rubí','#A8123A'],
+    ['Ésika','Labial','Terracota','#B56044'],
+    ['Ésika','Labial','Vino tinto','#5E2336'],
+    ['Ésika','Labial','Nude','#CD9A85'],
+    ['Ésika','Labial','Fucsia','#D64A86']
+  ].map(function(lp){ var hlc = rgbToHlc(lp[3]); return { brand:lp[0], line:lp[1], name:lp[2], hex:lp[3], h:hlc.h, l:hlc.l, c:hlc.c }; });
+  var lpChips = null, lpGrid = null;
+
+  function lpNearest(lp){
+    if (!saved.length) return null;
+    var best = null, bd = 1e9;
+    for (var i=0;i<saved.length;i++){
+      var it = saved[i];
+      var d = Math.abs(it.l-lp.l) + Math.abs(it.c-lp.c) + Math.abs(it.h-lp.h)*0.25;
+      if (d<bd){ bd=d; best=it; }
+    }
+    return best;
+  }
+
+  function renderLips(){
+    lpGrid.innerHTML = '';
+    var fp = lpChips.querySelector('.lp-chip.on').getAttribute('data-brand');
+    LIPSTICKS.forEach(function(lp){
+      if (fp!=='Todos' && lp.brand!==fp) return;
+      var card = document.createElement('div');
+      card.className = 'lp-card' + (lp.h===H && lp.l===L && lp.c===C ? ' on' : '');
+      var sw = document.createElement('div');
+      sw.className = 'lp-sw';
+      sw.style.background = lp.hex;
+      card.appendChild(sw);
+      var info = document.createElement('div');
+      info.className = 'lp-info';
+      var nm = document.createElement('div');
+      nm.className = 'lp-name';
+      nm.textContent = lp.name;
+      var br = document.createElement('span');
+      br.className = 'lp-brand';
+      br.style.background = lpHsue(lp.h);
+      br.innerHTML = '<b>' + esc(lp.brand) + '</b>';
+      br.title = lp.line;
+      var code = document.createElement('div');
+      code.className = 'lp-code';
+      code.textContent = pad3(lp.h)+'-'+pad2(lp.l)+'-'+pad2(lp.c)+' · '+lp.hex;
+      info.appendChild(nm); info.appendChild(br); info.appendChild(code);
+      var ne = lpNearest(lp);
+      if (ne){
+        var cmp = document.createElement('div');
+        cmp.className = 'lp-comp';
+        cmp.title = 'Tono guardado más parecido';
+        cmp.textContent = '≈ ' + ne.name + ' · ' + pad3(ne.h)+'-'+pad2(ne.l)+'-'+pad2(ne.c);
+        info.appendChild(cmp);
+      }
+      card.appendChild(info);
+      card.title = lp.name + ' · ' + lp.brand + ' (' + lp.line + ')\n' + pad3(lp.h)+'-'+pad2(lp.l)+'-'+pad2(lp.c);
+      card.onclick = function(){ update({ h:lp.h, l:lp.l, c:lp.c }); };
+      lpGrid.appendChild(card);
+    });
+  }
+
+  function lpHsue(h){ return hex(color(60, 70, h)); }
+
+  function renderLpChips(){
+    var brands = ['Todos','Maybelline','NYX','CYZONE','Ésika'];
+    lpChips.innerHTML = '';
+    brands.forEach(function(b){
+      var ch = document.createElement('button');
+      ch.className = 'lp-chip' + (b==='Todos' ? ' on' : '');
+      ch.setAttribute('data-brand', b);
+      ch.textContent = b + ' (' + (b==='Todos' ? LIPSTICKS.length : b==='Ésika' ? LIPSTICKS.filter(function(x){return x.brand==='Ésika';}).length : LIPSTICKS.filter(function(x){return x.brand===b;}).length) + ')';
+      ch.onclick = function(){ lpChips.querySelectorAll('.lp-chip').forEach(function(c){ c.classList.remove('on'); }); ch.classList.add('on'); renderLips(); };
+      lpChips.appendChild(ch);
+    });
+  }
+
+  
 
   function drawRamp(){
     var hh = 340;
@@ -510,7 +612,7 @@
     }
     prevC = {h:H, l:L, c:C};
     markSelection();
-    drawWheel(); drawRamp(); renderSegs(); renderFicha(); renderHero();
+    drawRamp(); renderSegs(); renderFicha(); renderHero();
   }
 
   function update(val){
@@ -529,14 +631,6 @@
     render();
   }
 
-  wheel.canvas.addEventListener('click', function(e){
-    var r = wheel.canvas.getBoundingClientRect();
-    var x = (e.clientX-r.left)/r.width*WH, y = (e.clientY-r.top)/r.height*WH;
-    var dx=x-WC, dy=y-WC, dist=Math.sqrt(dx*dx+dy*dy);
-    if (dist>WR) return;
-    var ang = Math.atan2(dx,-dy)*180/Math.PI; if (ang<0) ang+=360;
-    update({ h:Math.round(ang/360*160), c:Math.round(dist/WR*99) });
-  });
   ramp.canvas.addEventListener('click', function(e){
     var r = ramp.canvas.getBoundingClientRect();
     var l = Math.round((1-(e.clientY-r.top)/r.height)*99);
@@ -888,6 +982,7 @@
     }
     renderMapa();
     renderSecChips();
+    if (lpGrid) renderLips();
     if (q){ var sc = secForQuery(q); if (sc){ scrollToMap(q); } else { lastMappedQ = null; } } else { lastMappedQ = null; }
   }
 
@@ -980,6 +1075,8 @@
   }
 
   qIn.addEventListener('input', renderSaved);
+  lpChips = byId('lpChips'); lpGrid = byId('lpGrid');
+  renderLpChips(); renderLips();
 
   sync();
   renderSaved();
