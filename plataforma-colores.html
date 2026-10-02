@@ -729,6 +729,14 @@
     return el;
   }
 
+  var lastMappedQ = null;
+  function scrollToMap(q){
+    if (lastMappedQ === q) return;
+    lastMappedQ = q;
+    var el = byId('mapa');
+    if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
   function renderMapa(){
     var mapEl = byId('mapa');
     mapEl.innerHTML = '';
@@ -873,6 +881,7 @@
     }
     renderMapa();
     renderSecChips();
+    if (q){ var sc = secForQuery(q); if (sc){ scrollToMap(q); } else { lastMappedQ = null; } } else { lastMappedQ = null; }
   }
 
   function cmpColor(a, b){
