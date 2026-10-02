@@ -137,6 +137,7 @@
   .sugg-add { width:22px; height:22px; line-height:1; margin-left:6px; border:none; border-radius:50%; background:#3b5bbf; color:#fff; font-size:15px; font-weight:700; cursor:pointer; vertical-align:middle; }
   .sugg-add:hover { background:#27448f; }
   .mapa-sec { margin-bottom:18px; }
+  .mapa-sec-on { padding:12px; border:1px solid #8ea8d8; background:#f6f9ff; border-radius:12px; }
   .mapa-sec-head { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin-bottom:8px; }
   .mapa-strip { display:flex; flex-wrap:wrap; gap:6px; }
   .mapa-swatch { width:44px; height:54px; border-radius:8px; border:1px solid rgba(0,0,0,.14); cursor:pointer; transition:transform .1s; position:relative; }
@@ -221,7 +222,7 @@
     <div class="mapa-block">
       <h2>Mapa de la biblioteca</h2>
       <div id="mapa"></div>
-      <p class="hint">Vista general de todas las secciones y sus tonos guardados, ordenados de claro a oscuro. Al seleccionar una sección, su fila muestra también los tonos faltantes propuestos (punteados): clic para probar y + para guardarlos. Pasa el ratón para ver el nombre y código; haz clic para cargar un tono.</p>
+      <p class="hint">Al seleccionar una sección (chip o buscador), el mapa muestra solo los tonos de esa sección más sus faltantes propuestos (punteados): clic para probar y + para guardarlos. Sin selección, se ven todas las secciones. Pasa el ratón para ver el nombre y código.</p>
     </div>
   </div>
 
@@ -742,10 +743,12 @@
     saved.forEach(function(it){ (bySec[it.sec] = bySec[it.sec] || []).push(it); });
     var qq = norm(qIn.value).trim();
     var selSec = qq ? secForQuery(qq) : null;
-    Object.keys(bySec).sort().forEach(function(s){
+    var secs = Object.keys(bySec).sort();
+    var toShow = (selSec && bySec[selSec]) ? [selSec] : secs;
+    toShow.forEach(function(s){
       var arr = bySec[s].slice().sort(cmpColor);
       var box = document.createElement('div');
-      box.className = 'mapa-sec';
+      box.className = 'mapa-sec' + (selSec===s ? ' mapa-sec-on' : '');
       var head = document.createElement('div');
       head.className = 'mapa-sec-head';
       head.textContent = s + ' · ' + arr.length + ' tono' + (arr.length===1 ? '' : 's') + ' · claro → oscuro';
