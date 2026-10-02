@@ -130,6 +130,12 @@
   .serie-head { color:#8a5a26; margin-top:18px; }
   .serie-card { background:#fdfaf3; }
   .serie-tag { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .sugg-head { color:#3b5bbf; margin-top:18px; }
+  .sugg-card { background:#f3f6fc; border:1px dashed #9db4e0; }
+  .sugg-card .mine-del { display:none; }
+  .sugg-tag { background:#3b5bbf; color:#fff; border-color:#3b5bbf; }
+  .sugg-add { width:22px; height:22px; line-height:1; margin-left:6px; border:none; border-radius:50%; background:#3b5bbf; color:#fff; font-size:15px; font-weight:700; cursor:pointer; vertical-align:middle; }
+  .sugg-add:hover { background:#27448f; }
   .mapa-sec { margin-bottom:18px; }
   .mapa-sec-head { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin-bottom:8px; }
   .mapa-strip { display:flex; flex-wrap:wrap; gap:6px; }
@@ -664,6 +670,60 @@
     persist(); renderSaved(); refreshSecList();
   });
 
+  function secForQuery(qq){
+    var secs = {};
+    saved.forEach(function(it){ secs[it.sec] = 1; });
+    var keys = Object.keys(secs);
+    var exact = keys.filter(function(s){ return norm(s)===qq; });
+    if (exact.length) return exact[0];
+    var any = keys.filter(function(s){ return norm(s).indexOf(qq)>=0; });
+    return any.length ? any[0] : null;
+  }
+
+  function missingTones(sec){
+    var its = saved.filter(function(x){ return x.sec===sec; });
+    if (!its.length) return [];
+    var minH = 160, maxH = 0;
+    its.forEach(function(x){ if (x.h<minH) minH=x.h; if (x.h>maxH) maxH=x.h; });
+    var cen = Math.round((minH+maxH)/2);
+    var Ls = [95, 75, 55, 35, 15], Cs = [25, 50, 75, 95];
+    var out = [];
+    Ls.forEach(function(l){ Cs.forEach(function(c){
+      var near = its.some(function(x){ return Math.abs(x.l-l)<=10 && Math.abs(x.c-c)<=12; });
+      if (!near) out.push({ h:cen, l:l, c:c });
+    }); });
+    return out;
+  }
+
+  function quickAdd(m, sec){
+    var nm = toneName(m.h, m.l, m.c);
+    var ex = false;
+    for (var i=0;i<saved.length;i++){ if (saved[i].h===m.h && saved[i].l===m.l && saved[i].c===m.c){ ex=true; break; } }
+    if (ex){ flash('Ya estaba guardado: '+nm); return; }
+    saved.push({ id:Date.now().toString(36)+Math.random().toString(36).slice(2,7), h:m.h, l:m.l, c:m.c, name:nm, sec:sec });
+    persist(); renderSaved(); refreshSecList();
+    flash('Agregado a «'+sec+'»: '+nm);
+  }
+
+  function missCard(m, sec){
+    var rgb = color(m.l, m.c, m.h);
+    var el = document.createElement('div');
+    el.className = 'mine-card sugg-card';
+    el.setAttribute('data-code', pad3(m.h)+'-'+pad2(m.l)+'-'+pad2(m.c));
+    var sw = document.createElement('div');
+    sw.className = 'mine-sw';
+    sw.style.background = hex(rgb);
+    el.appendChild(sw);
+    var info = document.createElement('div');
+    info.className = 'mine-info';
+    var nm = toneName(m.h, m.l, m.c);
+    info.innerHTML = '<div class="mine-name">'+esc(nm)+'</div><div class="mine-code">'+pad3(m.h)+'-'+pad2(m.l)+'-'+pad2(m.c)+'</div><div class="mine-sec sugg-tag">faltante</div><button class="sugg-add" title="Guardar en '+esc(sec)+'">+</button>';
+    el.appendChild(info);
+    el.querySelector('.sugg-add').onclick = function(ev){ ev.stopPropagation(); quickAdd(m, sec); };
+    el.onclick = function(){ update({ h:m.h, l:m.l, c:m.c }); };
+    return el;
+  }
+
   function renderMapa(){
     var mapEl = byId('mapa');
     mapEl.innerHTML = '';
@@ -759,6 +819,28 @@
         mineGrid.appendChild(sh);
         for (var k=0;k<=10;k++){
           mineGrid.appendChild(serieCard({ h: activeSerie.h, l: Math.round((10 - k) / 10 * 99), c: activeSerie.c }));
+        }
+      }
+    }
+    if (q){
+      var secSel = secForQuery(q);
+      if (secSel && bySec[secSel]){
+        var shh = document.createElement('div');
+        shh.className = 'sec-head sugg-head';
+        shh.textContent = 'Tonos faltantes de la gama «' + secSel + '» · propuesta';
+        mineGrid.appendChild(shh);
+        var miss = missingTones(secSel);
+        if (!miss.length){
+          var full = document.createElement('div');
+          full.className = 'mine-empty';
+          full.textContent = '¡La gama de «' + secSel + '» está completa! No hay tonos faltantes propuestos.';
+          mineGrid.appendChild(full);
+        } else {
+          miss.forEach(function(m){ mineGrid.appendChild(missCard(m, secSel)); });
+          var note = document.createElement('div');
+          note.className = 'mine-empty';
+          note.textContent = 'Haz clic para probar un tono · pulsa + para guardarlo directamente en «' + secSel + '».';
+          mineGrid.appendChild(note);
         }
       }
     }
