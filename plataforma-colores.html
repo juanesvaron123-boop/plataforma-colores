@@ -126,6 +126,7 @@
   .mine-block { margin-bottom:22px; padding-bottom:22px; border-bottom:1px dashed var(--line); }
   .mine-block .save-bar { margin-top:0; padding-top:0; border-top:none; margin-bottom:16px; }
   .mapa-block { margin-top:24px; padding-top:22px; border-top:1px dashed var(--line); }
+  .mapa-block.panel { margin-top:0; padding-top:0; border-top:none; }
   .mapa-block h2 { margin-bottom:14px; }
   .serie-head { color:#8a5a26; margin-top:18px; }
   .serie-card { background:#fdfaf3; }
@@ -230,11 +231,6 @@
     </div>
     <div class="tool" id="tool">—</div>
     </div>
-    <div class="mapa-block">
-      <h2>Mapa de la biblioteca</h2>
-      <div id="mapa"></div>
-      <p class="hint">Al seleccionar una sección, el mapa la dibuja como una cuadrícula de coordenadas Ligereza × Croma: las casillas llenas son tonos guardados (clic para cargar); las punteadas son las coordenadas de tendencia que faltan (Coloro · Pantone · maquillaje): clic para probar, + para guardar. Sin selección se ven todas las secciones en filas.</p>
-    </div>
   </div>
 
   <div class="grid">
@@ -295,6 +291,12 @@
         <p class="hint">Ligereza × Croma al hue actual (vista tipo Coloro). Clic para elegir.</p>
       </div>
     </div>
+  </div>
+
+  <div class="panel mapa-block">
+    <h2>Mapa de la biblioteca</h2>
+    <div id="mapa"></div>
+    <p class="hint">Las propuestas de tendencia (Coloro · Pantone · maquillaje) aparecen solo aquí. Al seleccionar una sección, el mapa es una cuadrícula Ligereza × Croma: casillas llenas = guardados (clic cargarlos); punteadas = tendencias que faltan (clic probar, + guardar). Sin selección se ven todas las secciones en filas.</p>
   </div>
 </div>
 
