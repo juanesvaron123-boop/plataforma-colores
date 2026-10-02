@@ -44,9 +44,6 @@
   .wheel-wrap { position:relative; display:flex; justify-content:center; }
   canvas { display:block; border-radius:12px; }
   #exp { background:#e9e6df; min-height:140px; }
-  .plane-row { display:flex; gap:18px; flex-wrap:wrap; }
-  .plane-row > div { flex:1 1 300px; min-width:260px; }
-  #exp, #planeLC { background:#e9e6df; }
   .lib-row { display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start; }
   .lib-grid { flex:1.3 1 360px; min-width:280px; }
   .ficha { flex:1 1 300px; min-width:260px; }
@@ -277,22 +274,6 @@
     <p class="legend">Regiones: arriba = ligereza alta · abajo = baja · izquierda = croma bajo · derecha = alto. Haz clic en una región para saltar a ella.</p>
   </div>
 
-  <div class="panel plane-panel">
-    <h2>Plano de color</h2>
-    <div class="plane-row">
-      <div>
-        <canvas id="exp" width="161" height="100" style="width:100%; cursor:crosshair;"></canvas>
-        <div class="wheel-caps"><span>Ligereza 99</span><span>Hue 0 · 160 →</span><span style="text-align:right">Ligereza 0</span></div>
-        <p class="hint">Hue × Ligereza al croma actual (intervalos iguales, sin huecos). Clic para tomar el color.</p>
-      </div>
-      <div>
-        <canvas id="planeLC" width="180" height="100" style="width:100%; cursor:crosshair;"></canvas>
-        <div class="wheel-caps"><span>Croma 0</span><span>Ligereza 99 ↑</span><span style="text-align:right">Croma 99</span></div>
-        <p class="hint">Ligereza × Croma al hue actual (vista tipo Coloro). Clic para elegir.</p>
-      </div>
-    </div>
-  </div>
-
   <div class="panel mapa-block">
     <h2>Mapa de la biblioteca</h2>
     <div id="mapa"></div>
@@ -304,7 +285,7 @@
 (function () {
   var H = 40, L = 50, C = 55;
   var hueEl = byId('hue'), hueREl = byId('hueR'), ligEl = byId('lig'), ligREl = byId('ligR'), cromaEl = byId('croma'), cromaREl = byId('cromaR');
-  var wheel = canv('wheel'), ramp = canv('rampH'), exp = canv('exp'), lc = canv('planeLC'), lib = canv('lib');
+  var wheel = canv('wheel'), ramp = canv('rampH'), lib = canv('lib');
   var FH = 40, libF = 0;
   function folderHue(i){ return Math.round(i*(160/62)); }
   var customName = null, prevC = {h:null,l:null,c:null};
@@ -397,42 +378,6 @@
     ramp.fillRect(56, yL-12, 4, 25);
     ramp.fillRect(0, yL-12, 60, 3);
     ramp.fillRect(0, yL+10, 60, 3);
-  }
-
-  function drawExp(){
-    var d = exp.createImageData(161, 100), i = 0;
-    var cc = clamp(C,0,99);
-    if (cc<1) cc = 1;
-    var tot = 0;
-    for (var y=0;y<100;y++){
-      var l = 99-y;
-      for (var x=0;x<161;x++){
-        var rgb = color(l, cc, x);
-        d.data[i++]=rgb[0]; d.data[i++]=rgb[1]; d.data[i++]=rgb[2]; d.data[i++]=255;
-        tot++;
-      }
-    }
-    exp.putImageData(d,0,0);
-    var xh = Math.round(H), yl = 99-L;
-    exp.lineWidth = 3; exp.strokeStyle = '#ffffff';
-    exp.strokeRect(xh-1.5, yl-1.5, 3, 3);
-  }
-
-  function drawLC(){
-    var W = lc.canvas.width, Hh = lc.canvas.height;
-    var d = lc.createImageData(W, Hh), i = 0;
-    for (var y=0;y<Hh;y++){
-      var l = Math.round((Hh-1-y)/(Hh-1)*99);
-      for (var x=0;x<W;x++){
-        var c = Math.round(x/(W-1)*99);
-        var rgb = color(l, c, H);
-        d.data[i++]=rgb[0]; d.data[i++]=rgb[1]; d.data[i++]=rgb[2]; d.data[i++]=255;
-      }
-    }
-    lc.putImageData(d,0,0);
-    var xc = Math.round(C/99*(W-1)), yl = Hh - Math.round(L/99*(Hh-1)) - 1;
-    lc.lineWidth = 3; lc.strokeStyle = '#ffffff';
-    lc.strokeRect(xc-1.5, yl-1.5, 3, 3);
   }
 
   var HUE_NAMES = [[0,15,'Rojo'],[16,30,'Naranja'],[31,45,'Ámbar'],[46,60,'Amarillo'],[61,75,'Verde limón'],[76,90,'Verde'],[91,105,'Verde azulado'],[106,120,'Cian'],[121,132,'Azul'],[133,145,'Violeta'],[146,160,'Magenta']];
@@ -565,7 +510,7 @@
     }
     prevC = {h:H, l:L, c:C};
     markSelection();
-    drawWheel(); drawRamp(); drawExp(); drawLC(); renderSegs(); renderFicha(); renderHero();
+    drawWheel(); drawRamp(); renderSegs(); renderFicha(); renderHero();
   }
 
   function update(val){
@@ -596,20 +541,6 @@
     var r = ramp.canvas.getBoundingClientRect();
     var l = Math.round((1-(e.clientY-r.top)/r.height)*99);
     update({ l:clamp(l,0,99) });
-  });
-  exp.canvas.addEventListener('click', function(e){
-    var r = exp.canvas.getBoundingClientRect();
-    var x = Math.round((e.clientX-r.left)/r.width*160);
-    var y = Math.round((e.clientY-r.top)/r.height*99);
-    update({ h:clamp(x,0,160), l:clamp(99-y,0,99) });
-  });
-  lc.canvas.addEventListener('click', function(e){
-    var r = lc.canvas.getBoundingClientRect();
-    var xc = Math.round((e.clientX-r.left)/r.width*(lc.canvas.width-1));
-    var yl = Math.round((e.clientY-r.top)/r.height*(lc.canvas.height-1));
-    var c2 = clamp(Math.round(xc/(lc.canvas.width-1)*99),0,99);
-    var l2 = clamp(99 - Math.round(yl/(lc.canvas.height-1)*99),0,99);
-    update({ l:l2, c:c2 });
   });
   var tool = byId('tool');
   function cellXY(e, el){
