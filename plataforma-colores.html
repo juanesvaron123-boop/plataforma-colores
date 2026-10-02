@@ -139,9 +139,12 @@
   .mapa-sec { margin-bottom:18px; }
   .mapa-sec-head { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin-bottom:8px; }
   .mapa-strip { display:flex; flex-wrap:wrap; gap:6px; }
-  .mapa-swatch { width:44px; height:54px; border-radius:8px; border:1px solid rgba(0,0,0,.14); cursor:pointer; transition:transform .1s; }
+  .mapa-swatch { width:44px; height:54px; border-radius:8px; border:1px solid rgba(0,0,0,.14); cursor:pointer; transition:transform .1s; position:relative; }
   .mapa-swatch:hover { transform:translateY(-2px); }
   .mapa-swatch.on { outline:3px solid var(--ink); outline-offset:-2px; }
+  .mapa-swatch.sugg { border:2px dashed #8ea8d8; }
+  .mapa-add { position:absolute; bottom:3px; right:3px; width:18px; height:18px; line-height:1; border:none; border-radius:50%; background:#3b5bbf; color:#fff; font-size:13px; font-weight:700; cursor:pointer; }
+  .mapa-add:hover { background:#27448f; }
   .mapa-empty { color:var(--muted); font-size:13px; padding:16px; text-align:center; background:#faf8f4; border-radius:10px; }
 </style>
 </head>
@@ -218,7 +221,7 @@
     <div class="mapa-block">
       <h2>Mapa de la biblioteca</h2>
       <div id="mapa"></div>
-      <p class="hint">Vista general de todas las secciones y sus tonos guardados, ordenados de claro a oscuro. Pasa el ratón para ver el nombre y código; haz clic para cargar un tono.</p>
+      <p class="hint">Vista general de todas las secciones y sus tonos guardados, ordenados de claro a oscuro. Al seleccionar una sección, su fila muestra también los tonos faltantes propuestos (punteados): clic para probar y + para guardarlos. Pasa el ratón para ver el nombre y código; haz clic para cargar un tono.</p>
     </div>
   </div>
 
@@ -736,6 +739,8 @@
     }
     var bySec = {};
     saved.forEach(function(it){ (bySec[it.sec] = bySec[it.sec] || []).push(it); });
+    var qq = norm(qIn.value).trim();
+    var selSec = qq ? secForQuery(qq) : null;
     Object.keys(bySec).sort().forEach(function(s){
       var arr = bySec[s].slice().sort(cmpColor);
       var box = document.createElement('div');
@@ -747,6 +752,7 @@
       var strip = document.createElement('div');
       strip.className = 'mapa-strip';
       arr.forEach(function(it){ strip.appendChild(mapSwatch(it)); });
+      if (selSec === s) missingTones(s).forEach(function(m){ strip.appendChild(mapMissSwatch(m, s)); });
       box.appendChild(strip);
       mapEl.appendChild(box);
     });
@@ -760,6 +766,23 @@
     el.style.background = hex(rgb);
     el.title = it.name + ' · ' + pad3(it.h)+'-'+pad2(it.l)+'-'+pad2(it.c) + ' · ' + it.sec;
     el.onclick = function(){ loadSaved(it); };
+    return el;
+  }
+
+  function mapMissSwatch(m, sec){
+    var rgb = color(m.l, m.c, m.h);
+    var el = document.createElement('div');
+    el.className = 'mapa-swatch sugg';
+    el.setAttribute('data-code', pad3(m.h)+'-'+pad2(m.l)+'-'+pad2(m.c));
+    el.style.background = hex(rgb);
+    el.title = 'Faltante propuesto · ' + toneName(m.h,m.l,m.c) + ' · ' + pad3(m.h)+'-'+pad2(m.l)+'-'+pad2(m.c);
+    var add = document.createElement('button');
+    add.className = 'mapa-add';
+    add.title = 'Guardar en ' + sec;
+    add.textContent = '+';
+    add.onclick = function(ev){ ev.stopPropagation(); quickAdd(m, sec); };
+    el.appendChild(add);
+    el.onclick = function(){ update({ h:m.h, l:m.l, c:m.c }); };
     return el;
   }
 
