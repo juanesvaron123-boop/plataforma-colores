@@ -953,28 +953,6 @@
         }
       }
     }
-    if (q){
-      var secSel = secForQuery(q);
-      if (secSel && bySec[secSel]){
-        var shh = document.createElement('div');
-        shh.className = 'sec-head sugg-head';
-        shh.textContent = 'Tendencias «' + secSel + '» que faltan · Coloro · Pantone · maquillaje';
-        mineGrid.appendChild(shh);
-        var miss = missingTones(secSel);
-        if (!miss.length){
-          var full = document.createElement('div');
-          full.className = 'mine-empty';
-          full.textContent = '¡Las tendencias de «' + secSel + '» ya están cubiertas! No hay tonos de Coloro · Pantone · maquillaje faltantes.';
-          mineGrid.appendChild(full);
-        } else {
-          miss.forEach(function(m){ mineGrid.appendChild(missCard(m, secSel)); });
-          var note = document.createElement('div');
-          note.className = 'mine-empty';
-          note.textContent = 'Haz clic para probar un tono · pulsa + para guardarlo directamente en «' + secSel + '».';
-          mineGrid.appendChild(note);
-        }
-      }
-    }
     renderMapa();
     renderSecChips();
     if (q){ var sc = secForQuery(q); if (sc){ scrollToMap(q); } else { lastMappedQ = null; } } else { lastMappedQ = null; }
