@@ -153,6 +153,8 @@
   .ma-cell:hover { transform:translateY(-2px); }
   .ma-cell.on { outline:3px solid var(--ink); outline-offset:-2px; }
   .ma-cell.sugg { border:2px dashed #8ea8d8; }
+  .ma-cell.empty { background:rgba(0,0,0,.035); border-color:transparent; cursor:default; }
+  .ma-cell.empty:hover { transform:none; }
   .ma-cell .ma-count { position:absolute; top:2px; right:3px; background:rgba(0,0,0,.5); color:#fff; font-size:9px; font-weight:700; padding:0 4px; border-radius:8px; }
   .ma-cell .mapa-add { width:18px; height:18px; font-size:13px; }
   .mapa-empty { color:var(--muted); font-size:13px; padding:16px; text-align:center; background:#faf8f4; border-radius:10px; }
@@ -231,7 +233,7 @@
     <div class="mapa-block">
       <h2>Mapa de la biblioteca</h2>
       <div id="mapa"></div>
-      <p class="hint">Al seleccionar una sección, el mapa la dibuja como una cuadrícula de coordenadas: cada casilla es un intervalo de Ligereza (filas) × Croma (columnas). Las casillas llenas son tonos guardados (clic para cargar; varias comparten casilla con «×n»); las punteadas son faltantes propuestos (clic para probar, + para guardarlo). Sin selección se ven todas las secciones en filas. Pasa el ratón para ver los códigos.</p>
+      <p class="hint">Al seleccionar una sección, el mapa la dibuja como una cuadrícula de coordenadas Ligereza × Croma: las casillas llenas son tonos guardados (clic para cargar); las punteadas son las coordenadas de tendencia que faltan (Coloro · Pantone · maquillaje): clic para probar, + para guardar. Sin selección se ven todas las secciones en filas.</p>
     </div>
   </div>
 
@@ -693,19 +695,23 @@
     return any.length ? any[0] : null;
   }
 
+  var TREND_LC = [
+    [90,20],[85,30],[80,25],[80,12],[75,35],[70,45],[70,15],[65,40],
+    [60,30],[58,45],[55,55],[55,15],[50,65],[48,12],[48,45],[45,60],
+    [40,20],[38,30],[35,50],[30,40],[25,55],[20,20],[15,35],[10,25]
+  ];
+  var trendCells = {};
+  TREND_LC.forEach(function(t){ trendCells[Math.floor(t[0]/10)+'-'+Math.floor(t[1]/10)] = [t[0], t[1]]; });
+
   function missingTones(sec){
     var its = saved.filter(function(x){ return x.sec===sec; });
     if (!its.length) return [];
-    var minH = 160, maxH = 0;
-    its.forEach(function(x){ if (x.h<minH) minH=x.h; if (x.h>maxH) maxH=x.h; });
-    var cen = Math.round((minH+maxH)/2);
-    var Ls = [97, 87, 77, 67, 57, 47, 37, 27, 17, 7];
-    var Cs = [15, 25, 35, 45, 55, 65, 75, 85, 95];
+    var cen = secCenterH(sec);
     var out = [];
-    Ls.forEach(function(l){ Cs.forEach(function(c){
-      var near = its.some(function(x){ return Math.abs(x.l-l)<=8 && Math.abs(x.c-c)<=8; });
-      if (!near) out.push({ h:cen, l:l, c:c });
-    }); });
+    TREND_LC.forEach(function(t){
+      var near = its.some(function(x){ return Math.abs(x.l-t[0])<=6 && Math.abs(x.c-t[1])<=8; });
+      if (!near) out.push({ h: cen, l: t[0], c: t[1] });
+    });
     return out;
   }
 
@@ -731,7 +737,7 @@
     var info = document.createElement('div');
     info.className = 'mine-info';
     var nm = toneName(m.h, m.l, m.c);
-    info.innerHTML = '<div class="mine-name">'+esc(nm)+'</div><div class="mine-code">'+pad3(m.h)+'-'+pad2(m.l)+'-'+pad2(m.c)+'</div><div class="mine-sec sugg-tag">faltante</div><button class="sugg-add" title="Guardar en '+esc(sec)+'">+</button>';
+    info.innerHTML = '<div class="mine-name">'+esc(nm)+'</div><div class="mine-code">'+pad3(m.h)+'-'+pad2(m.l)+'-'+pad2(m.c)+'</div><div class="mine-sec sugg-tag">tendencia</div><button class="sugg-add" title="Guardar en '+esc(sec)+'">+</button>';
     el.appendChild(info);
     el.querySelector('.sugg-add').onclick = function(ev){ ev.stopPropagation(); quickAdd(m, sec); };
     el.onclick = function(){ update({ h:m.h, l:m.l, c:m.c }); };
@@ -866,18 +872,24 @@
         cell.appendChild(bd);
       }
     } else {
-      var m = { h: secCenterH(sec), l: lo+5, c: co+5 };
-      cell.className = 'ma-cell sugg';
-      cell.setAttribute('data-code', pad3(m.h)+'-'+pad2(m.l)+'-'+pad2(m.c));
-      cell.style.background = hex(color(m.l, m.c, m.h));
-      cell.title = 'Faltante propuesto · ' + toneName(m.h, m.l, m.c) + ' · ' + pad3(m.h)+'-'+pad2(m.l)+'-'+pad2(m.c);
-      cell.onclick = function(){ update({ h:m.h, l:m.l, c:m.c }); };
-      var add = document.createElement('button');
-      add.className = 'mapa-add';
-      add.title = 'Guardar en ' + sec;
-      add.textContent = '+';
-      add.onclick = function(ev){ ev.stopPropagation(); quickAdd(m, sec); };
-      cell.appendChild(add);
+      var tk = Lb + '-' + Cb, tc = trendCells[tk];
+      if (tc){
+        var m = { h: secCenterH(sec), l: tc[0], c: tc[1] };
+        cell.className = 'ma-cell sugg';
+        cell.setAttribute('data-code', pad3(m.h)+'-'+pad2(m.l)+'-'+pad2(m.c));
+        cell.style.background = hex(color(m.l, m.c, m.h));
+        cell.title = 'Tendencia faltante (Coloro · Pantone · maquillaje) · ' + toneName(m.h, m.l, m.c) + ' · ' + pad3(m.h)+'-'+pad2(m.l)+'-'+pad2(m.c);
+        cell.onclick = function(){ update({ h:m.h, l:m.l, c:m.c }); };
+        var add = document.createElement('button');
+        add.className = 'mapa-add';
+        add.title = 'Guardar en ' + sec;
+        add.textContent = '+';
+        add.onclick = function(ev){ ev.stopPropagation(); quickAdd(m, sec); };
+        cell.appendChild(add);
+      } else {
+        cell.className = 'ma-cell empty';
+        cell.title = 'Gama fuera de tendencia: sin propuesta';
+      }
     }
     return cell;
   }
@@ -946,13 +958,13 @@
       if (secSel && bySec[secSel]){
         var shh = document.createElement('div');
         shh.className = 'sec-head sugg-head';
-        shh.textContent = 'Tonos faltantes de la gama «' + secSel + '» · propuesta';
+        shh.textContent = 'Tendencias «' + secSel + '» que faltan · Coloro · Pantone · maquillaje';
         mineGrid.appendChild(shh);
         var miss = missingTones(secSel);
         if (!miss.length){
           var full = document.createElement('div');
           full.className = 'mine-empty';
-          full.textContent = '¡La gama de «' + secSel + '» está completa! No hay tonos faltantes propuestos.';
+          full.textContent = '¡Las tendencias de «' + secSel + '» ya están cubiertas! No hay tonos de Coloro · Pantone · maquillaje faltantes.';
           mineGrid.appendChild(full);
         } else {
           miss.forEach(function(m){ mineGrid.appendChild(missCard(m, secSel)); });
@@ -1041,7 +1053,8 @@
     var mc = byId('mapa').querySelectorAll('.ma-cell');
     for (var m2=0;m2<mc.length;m2++){
       var isSugg = mc[m2].classList.contains('sugg');
-      mc[m2].className = mc[m2].getAttribute('data-code')===code ? 'ma-cell on' : (isSugg ? 'ma-cell sugg' : 'ma-cell');
+      var isEmpty = mc[m2].classList.contains('empty');
+      mc[m2].className = mc[m2].getAttribute('data-code')===code ? 'ma-cell on' : (isSugg ? 'ma-cell sugg' : (isEmpty ? 'ma-cell empty' : 'ma-cell'));
     }
   }
 
