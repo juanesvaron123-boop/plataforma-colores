@@ -689,10 +689,11 @@
     var minH = 160, maxH = 0;
     its.forEach(function(x){ if (x.h<minH) minH=x.h; if (x.h>maxH) maxH=x.h; });
     var cen = Math.round((minH+maxH)/2);
-    var Ls = [95, 75, 55, 35, 15], Cs = [25, 50, 75, 95];
+    var Ls = [97, 87, 77, 67, 57, 47, 37, 27, 17, 7];
+    var Cs = [15, 25, 35, 45, 55, 65, 75, 85, 95];
     var out = [];
     Ls.forEach(function(l){ Cs.forEach(function(c){
-      var near = its.some(function(x){ return Math.abs(x.l-l)<=10 && Math.abs(x.c-c)<=12; });
+      var near = its.some(function(x){ return Math.abs(x.l-l)<=8 && Math.abs(x.c-c)<=8; });
       if (!near) out.push({ h:cen, l:l, c:c });
     }); });
     return out;
