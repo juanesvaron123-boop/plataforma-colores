@@ -279,11 +279,11 @@
   </div>
 
   <div class="panel">
-    <h2>Referencia de labiales · Maybelline · NYX · CYZONE · Ésika</h2>
+    <h2>Referencia de labiales &middot; Maybelline (23) &middot; NYX (20) &middot; CYZONE (14) &middot; &Eacute;sika (16) &middot; 73 tonos</h2>
     <div class="lp-chips" id="lpChips"></div>
     <div class="lp-chips" id="lpGChips"></div>
     <div class="lp-grid" id="lpGrid"></div>
-    <p class="hint">Tonos de labiales de referencia agrupados por gama (Rojos, Vinos, Rosas, Fucsia, Corales, Terracota, Nudes, Berries). Filtra por marca o por gama; haz clic en un labial para cargarlo. Cada uno indica el tono guardado más parecido (≈). Los códigos están convertidos a HLC (Hue-Ligereza-Croma) con la misma matemática de la página.</p>
+    <p class="hint">73 tonos de labiales de referencia agrupados por gama: Rojos (12) · Vinos (16) · Rosas (13) · Fucsia (1) · Corales (6) · Terracota (9) · Nudes (12) · Berries (4). Filtra por marca o por gama; haz clic en un labial para cargarlo. Cada uno indica el tono guardado más parecido (≈). Los códigos están convertidos a HLC (Hue-Ligereza-Croma) con la misma matemática de la página.</p>
   </div>
 </div>
 
@@ -370,29 +370,78 @@
   var GAMAS = ['Rojos','Vinos','Rosas','Fucsia','Corales','Terracota','Nudes','Berries'];
   var LIPSTICKS = [
     ['Maybelline','SuperStay Matte Ink','Pioneer','#C91F37','Rojos'],
+    ['Maybelline','SuperStay Matte Ink','Lover','#C0222E','Rojos'],
+    ['Maybelline','SuperStay Matte Ink','Amazonian','#A33B36','Rojos'],
+    ['Maybelline','Color Sensational','Ruby for Me','#B3243C','Rojos'],
     ['Maybelline','SuperStay Matte Ink','Seduction','#8E2437','Vinos'],
-    ['Maybelline','SuperStay Matte Ink','Devotion','#E34A6F','Rosas'],
+    ['Maybelline','SuperStay Matte Ink','Loyalist','#A1306B','Vinos'],
+    ['Maybelline','SuperStay Matte Ink','Voyager','#8C3A5C','Vinos'],
+    ['Maybelline','SuperStay Matte Ink','Inspirer','#A62B56','Vinos'],
+    ['Maybelline','SuperStay Matte Ink','Founder','#7A2D44','Vinos'],
+    ['Maybelline','SuperStay Matte Ink','Revolutionary','#951F44','Vinos'],
     ['Maybelline','Color Sensational','Divine Wine','#6B2836','Vinos'],
+    ['Maybelline','SuperStay Matte Ink','Ruler','#B52C50','Rosas'],
+    ['Maybelline','SuperStay Matte Ink','Devotion','#E34A6F','Rosas'],
+    ['Maybelline','SuperStay Matte Ink','Romantic','#E15A7E','Rosas'],
+    ['Maybelline','SuperStay Matte Ink','Dreamer','#D67E8F','Rosas'],
+    ['Maybelline','SuperStay Matte Ink','Self-Starter','#C75B6C','Rosas'],
+    ['Maybelline','SuperStay Matte Ink','Thrill Seeker','#C25A3E','Corales'],
+    ['Maybelline','SuperStay Matte Ink','Entertainer','#E26A52','Corales'],
     ['Maybelline','Color Sensational','Touch of Spice','#B75A50','Terracota'],
+    ['Maybelline','Color Sensational','Spice for Me','#B85C44','Terracota'],
     ['Maybelline','Color Sensational','Nude Nuance','#C8997F','Nudes'],
+    ['Maybelline','SuperStay Matte Ink','Charmer','#DCA08F','Nudes'],
+    ['Maybelline','SuperStay Matte Ink','Poet','#B5627A','Berries'],
     ['NYX','Soft Matte Lip Cream','Amsterdam','#C2242F','Rojos'],
+    ['NYX','Soft Matte Lip Cream','Monte Carlo','#B93C4A','Rojos'],
     ['NYX','Soft Matte Lip Cream','Copenhagen','#7D2F57','Vinos'],
     ['NYX','Soft Matte Lip Cream','Transylvania','#472032','Vinos'],
+    ['NYX','Soft Matte Lip Cream','Istanbul','#B34E7A','Vinos'],
+    ['NYX','Soft Matte Lip Cream','Havana','#9B3556','Vinos'],
     ['NYX','Soft Matte Lip Cream','Prague','#D7627C','Rosas'],
-    ['NYX','Soft Matte Lip Cream','London','#C78E80','Nudes'],
+    ['NYX','Soft Matte Lip Cream','Madrid','#C85B77','Rosas'],
+    ['NYX','Soft Matte Lip Cream','Budapest','#E46E9B','Rosas'],
+    ['NYX','Soft Matte Lip Cream','Seoul','#D96C7C','Rosas'],
+    ['NYX','Soft Matte Lip Cream','Milan','#E8A0AD','Rosas'],
+    ['NYX','Soft Matte Lip Cream','Paris','#E87F9C','Rosas'],
     ['NYX','Soft Matte Lip Cream','Sao Paulo','#E26D5A','Corales'],
+    ['NYX','Soft Matte Lip Cream','Morocco','#C97A63','Terracota'],
+    ['NYX','Soft Matte Lip Cream','Rome','#8C5646','Terracota'],
+    ['NYX','Soft Matte Lip Cream','Stockholm','#D3A9A1','Nudes'],
+    ['NYX','Soft Matte Lip Cream','London','#C78E80','Nudes'],
+    ['NYX','Soft Matte Lip Cream','Abu Dhabi','#E5B8A6','Nudes'],
+    ['NYX','Soft Matte Lip Cream','Cannes','#D9A3AD','Nudes'],
+    ['NYX','Soft Matte Lip Cream','Zurich','#A9A2A5','Berries'],
     ['CYZONE','Colección','Rojo pasión','#C31226','Rojos'],
-    ['CYZONE','Colección','Terracota','#B65A45','Terracota'],
+    ['CYZONE','Colección','Rojo clásico','#D21E3C','Rojos'],
     ['CYZONE','Colección','Vino','#5F2336','Vinos'],
+    ['CYZONE','Colección','Sangría','#8E2B4A','Vinos'],
     ['CYZONE','Colección','Nude rosado','#D3A08D','Nudes'],
+    ['CYZONE','Colección','Nude total','#E0B79E','Nudes'],
+    ['CYZONE','Colección','Marfil','#E6C0A8','Nudes'],
     ['CYZONE','Colección','Coral','#E26D5A','Corales'],
+    ['CYZONE','Colección','Kiss','#E3976A','Corales'],
+    ['CYZONE','Colección','Terracota','#B65A45','Terracota'],
+    ['CYZONE','Colección','Caramelo','#B87A5E','Terracota'],
+    ['CYZONE','Colección','Cobre','#B4693F','Terracota'],
     ['CYZONE','Colección','Berry','#933B5C','Berries'],
+    ['CYZONE','Colección','Frambuesa','#A83B5B','Berries'],
     ['Ésika','Labial','Rojo fuego','#C01E35','Rojos'],
     ['Ésika','Labial','Rubí','#A8123A','Rojos'],
-    ['Ésika','Labial','Terracota','#B56044','Terracota'],
+    ['Ésika','Labial','Rojo pasión','#BF2031','Rojos'],
+    ['Ésika','Labial','Cereza','#C62839','Rojos'],
     ['Ésika','Labial','Vino tinto','#5E2336','Vinos'],
+    ['Ésika','Labial','Borgoña','#6B2336','Vinos'],
+    ['Ésika','Labial','Ciruela','#7D3558','Vinos'],
     ['Ésika','Labial','Nude','#CD9A85','Nudes'],
-    ['Ésika','Labial','Fucsia','#D64A86','Fucsia']
+    ['Ésika','Labial','Arena','#D3A080','Nudes'],
+    ['Ésika','Labial','Champán','#E8BFA8','Nudes'],
+    ['Ésika','Labial','Terracota','#B56044','Terracota'],
+    ['Ésika','Labial','Caramelo','#B9785C','Terracota'],
+    ['Ésika','Labial','Fucsia','#D64A86','Fucsia'],
+    ['Ésika','Labial','Coral','#E4755F','Corales'],
+    ['Ésika','Labial','Rosado suave','#DFA8B0','Rosas'],
+    ['Ésika','Labial','Rosa intenso','#D6457C','Rosas']
   ].map(function(lp){ var hlc = rgbToHlc(lp[3]); return { brand:lp[0], line:lp[1], name:lp[2], hex:lp[3], g:lp[4], h:hlc.h, l:hlc.l, c:hlc.c }; });
   var lpChips = null, lpGChips = null, lpGrid = null;
   var lpBrand = 'Todos', lpGama = 'Todos';
